@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Account: Contas e autenticações
+
+model Account {
+  id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
+  username      String   @unique // Must be unique
+  email         String   @unique // Must be unique
+  password      String
+  passwordHash  String?           // Nullable
+  emailVerified DateTime?         // Nullable
+  createdAt     DateTime @default(now()) // Default value generator. Records current timestamp
+  updatedAt     DateTime @updatedAt // Records timestamp for most recent change
+
+  oauthAccounts OAuthAccount[] // Number of OAuth accounts
+  refreshTokens RefreshToken[]
+}
+
+enum OAuthProvider {
+  google
+  github
+  apple
+}
+
+model OAuthAccount {
+  id                String  @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
+  provider          OAuthProvider
+  providerAccountId String
+
+  account           Account @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
+  accountId         String  @unique // Must be unique
+
+  @@unique([provider, providerAccountId]) // Combination of fields must be unique
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())  // Unique key. Default value generator. Universally unique identifier.
+  tokenHash  String   @unique               // Must be unique
+  expiresAt  DateTime
+  revokedAt  DateTime?                      // Nullable
+  createdAt  DateTime @default(now())       // Default value generator. Records current timestamp
+
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
+  accountId String    @unique               // Must be unique
+}
