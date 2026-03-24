@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: transcendence_db
     restart: always
     env_file:
       - .env
@@ -11,6 +10,8 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -19,9 +20,8 @@ services:
 
   frontend:
     build:
-      context: ..
-      dockerfile: srcs/frontend/Dockerfile
-    container_name: transcendence_frontend
+      context: .
+      dockerfile: infra/frontend/Dockerfile
     restart: always
     env_file:
       - .env
@@ -30,15 +30,14 @@ services:
         condition: service_healthy
     environment:
       PORT: ${FRONTEND_PORT}
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
     expose:
       - "3000"
 
   nginx:
     build:
-      context: ./nginx
+      context: ./infra/nginx
       dockerfile: Dockerfile
-    container_name: transcendence_proxy
     restart: always
     env_file:
       - .env

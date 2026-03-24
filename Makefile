@@ -1,12 +1,13 @@
 #SHELL := /bin/bash
 
-COMPOSE := docker compose
-ENV_FILE := .env
-COMPOSE_FILE := docker-compose.yml
-DC := $(COMPOSE) --env-file $(ENV_FILE) -f $(COMPOSE_FILE)
+COMPOSE        := docker compose
+ENV_FILE       := .env
+COMPOSE_FILE   := docker-compose.yml
+DC             := $(COMPOSE) -f $(COMPOSE_FILE)
 
 help:
-	@echo "Targets disponíveis:"
+	@echo ""
+	@echo "──── DOCKER (fluxo único) ────────────────────────────────────────────"
 	@echo "  make up             - build + sobe todos os serviços"
 	@echo "  make build          - build das imagens"
 	@echo "  make down           - para e remove containers/network"
@@ -15,6 +16,7 @@ help:
 	@echo "  make clean          - down com remoção de órfãos"
 	@echo "  make fclean         - clean + remove volumes e imagens locais"
 	@echo "  make re             - recria tudo do zero"
+	@echo ""
 
 all: up
 
@@ -52,3 +54,4 @@ fclean:
 re: fclean up
 
 .PHONY: help all build up start down stop restart logs ps status pull clean fclean re
+        
