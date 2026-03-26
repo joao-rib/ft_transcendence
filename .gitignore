@@ -1,3 +1,5 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
 /node_modules
 /.pnp
@@ -7,6 +9,8 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.git
+.next
 
 # testing
 /coverage
@@ -28,11 +32,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files — ignora TODOS os .env reais (palavras-passe, tokens)
-# O .env.example é a excepção: é o modelo sem dados sensíveis e DEVE ser commitado
-.env
-.env.*
-!.env.example
+# env files (can opt-in for committing if needed)
+.env*
 
 # vercel
 .vercel
@@ -41,4 +42,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+# subject
+en.subject.pdf
