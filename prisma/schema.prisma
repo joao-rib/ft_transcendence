@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output = "../src/generated/prisma"
@@ -14,20 +9,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Account: Contas e autenticações
+// Account: User account & player profile
 
 model Account {
   id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
-  username      String   @unique // Must be unique
-  email         String   @unique // Must be unique
-  password      String
-  passwordHash  String?           // Nullable
-  emailVerified DateTime?         // Nullable
+  username      String   @unique              // Must be unique
+  email         String   @unique              // Must be unique
+  passwordHash  String?                  // Nullable
+  emailVerified DateTime?                // Nullable
   createdAt     DateTime @default(now()) // Default value generator. Records current timestamp
-  updatedAt     DateTime @updatedAt // Records timestamp for most recent change
+  updatedAt     DateTime @updatedAt      // Records timestamp for most recent change
+
+  avatarUrl     String?   // Nullable
+  scores        Score[]
 
   oauthAccounts OAuthAccount[] // Number of OAuth accounts
   refreshTokens RefreshToken[]
+}
+
+// Score: Player record for each game
+
+enum Game {
+  chess
+  checkers
+  sueca
+}
+
+model Score {
+  id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
+  game          Game     @unique              // Must be unique
+  gamesPlayed   Int      @default(0)
+  gamesWon      Int      @default(0)
+  gamesLost     Int      @default(0)
+
+  account     Account @relation(fields: [accountId], references: [id]) // Defines a foreign key relationship
+  accountId   String  @unique // Must be unique
+
+  @@unique([accountId, game]) // Combination of fields must be unique
 }
 
 enum OAuthProvider {
@@ -55,5 +73,5 @@ model RefreshToken {
   createdAt  DateTime @default(now())       // Default value generator. Records current timestamp
 
   account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
-  accountId String    @unique               // Must be unique
+  accountId String    // Not unique. Allows user to mantain sessions from different devices
 }
