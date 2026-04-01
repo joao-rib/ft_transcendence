@@ -43,7 +43,7 @@ enum Rank {
 
 model Score {
   id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
-  game          Game     @unique              // Must be unique
+  game          Game
   title         Rank
   gamesPlayed   Int      @default(0)
   gamesWon      Int      @default(0)
