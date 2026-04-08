@@ -47,8 +47,15 @@ export function useChessSocket(gameId: string | null, username: string) {
   useEffect(() => {
     if (!gameId) return;
 
-    const socket = io(CHESS_NAMESPACE, {
-      transports: ["websocket", "polling"],
+    // Force WSS in HTTPS, WS in HTTP (for secure communication)
+    const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+    const socketUrl = isSecure 
+      ? `wss://${window.location.host}${CHESS_NAMESPACE}`
+      : `ws://${window.location.host}${CHESS_NAMESPACE}`;
+
+    const socket = io(socketUrl, {
+      // In HTTPS: only websocket (secure). In HTTP: allow fallback to polling for dev
+      transports: isSecure ? ["websocket"] : ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 500,
