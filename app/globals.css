@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --light-tile: #f0D8b7;
+  --dark-tile: #B48764;
+  --tile-size: 72px;
 }
 
 @theme inline {
@@ -17,6 +25,19 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+@media all and (max-width: 450px) {
+  :root {
+    --tile-size: 50px;
+  }
+}
+
+.App {
+  display: grid;
+  place-content: center;
+  height: 100vh;
+  background: var(--background);
 }
 
 body {
