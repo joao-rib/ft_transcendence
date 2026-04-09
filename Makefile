@@ -7,15 +7,16 @@ DC             := $(COMPOSE) -f $(COMPOSE_FILE)
 
 help:
 	@echo ""
-	@echo "──── DOCKER (fluxo único) ────────────────────────────────────────────"
-	@echo "  make up             - build + sobe todos os serviços"
-	@echo "  make build          - build das imagens"
-	@echo "  make down           - para e remove containers/network"
-	@echo "  make logs           - mostra logs em tempo real"
-	@echo "  make ps             - lista status dos serviços"
-	@echo "  make clean          - down com remoção de órfãos"
-	@echo "  make fclean         - clean + remove volumes e imagens locais"
-	@echo "  make re             - recria tudo do zero"
+	@echo "──── DOCKER (single workflow) ────────────────────────────────────────"
+	@echo "  make up             - build + starts all services"
+	@echo "  make build          - build images"
+	@echo "  make down           - stops and removes containers/network"
+	@echo "  make logs           - display live logs"
+	@echo "  make ps             - list service status"
+	@echo "  make local         - run the app locally (without Docker)"
+	@echo "  make clean          - down with orphan removal"
+	@echo "  make fclean         - clean + remove volumes and local images"
+	@echo "  make re             - recreate everything from scratch"
 	@echo ""
 
 all: up
@@ -43,6 +44,18 @@ status: ps
 
 pull:
 	$(DC) pull
+
+local:
+	# @cd .. && \
+	cd "$(dir $(abspath $(lastword $(MAKEFILE_LIST))))" && \
+	if command -v pnpm >/dev/null 2>&1; then \
+	pnpm dev; \
+	elif command -v npm >/dev/null 2>&1; then \
+	npm run dev; \
+	else \
+	echo "pnpm/npm not found. Install Node.js and a package manager first."; \
+	exit 1; \
+	fi
 
 clean:
 	$(DC) down --remove-orphans
