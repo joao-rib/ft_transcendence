@@ -35,16 +35,16 @@ enum Game {
   sueca
 }
 
-enum Rank {
+/*enum Rank {
   Beginner
   Intermediate
   Expert
-}
+}*/
 
 model Score {
   id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
   game          Game
-  title         Rank
+  //title         Rank
   gamesPlayed   Int      @default(0)
   gamesWon      Int      @default(0)
   gamesLost     Int      @default(0)
