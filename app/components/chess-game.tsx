@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Board from "./chess_game/Board";
 import GameChat from "./game-chat";
-import { useChessSocket } from "../hooks/useChessSocket";
+import { useChessSocket } from "../game/useChessSocket";
 
 interface ChessGameProps {
   gameId: string;

@@ -47,7 +47,7 @@ pull:
 
 local:
 	# @cd .. && \
-	@cd "$(dir $(abspath $(lastword $(MAKEFILE_LIST))))" && \
+	cd "$(dir $(abspath $(lastword $(MAKEFILE_LIST))))" && \
 	if command -v pnpm >/dev/null 2>&1; then \
 	pnpm dev; \
 	elif command -v npm >/dev/null 2>&1; then \
