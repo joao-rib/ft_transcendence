@@ -52,3 +52,5 @@ next-env.d.ts
 a.out
 *.txt
 *Zone.Identifier
+
+en.subject.pdf
