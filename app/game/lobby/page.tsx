@@ -1,9 +1,9 @@
 "use client";
 
-import GameBackground from "./components/GameBackground";
-import GameMatchSection from "./components/GameMatchSection";
-import GamePlayerSidebar from "./components/GamePlayerSidebar";
-import { useGameController } from "./hooks/useGameController";
+import GameBackground from "../components/GameBackground";
+import GameMatchSection from "../components/GameMatchSection";
+import GamePlayerSidebar from "../components/GamePlayerSidebar";
+import { useGameController } from "../hooks/useGameController";
 
 export default function GamePage() {
 	const {
