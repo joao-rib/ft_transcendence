@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme, type Theme } from "@/app/hooks/useTheme";
+import { useTheme, type Theme } from "@/app/frontend/hooks/useTheme";
 
 interface ThemeSwitcherProps {
 	direction?: "row" | "column";

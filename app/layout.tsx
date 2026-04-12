@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import GlobalHamburgerMenu from "./components/GlobalHamburgerMenu";
-import ThemeInitializer from "./components/ThemeInitializer";
+import GlobalHamburgerMenu from "./frontend/components/GlobalHamburgerMenu";
+import ThemeInitializer from "./frontend/components/ThemeInitializer";
 import "./globals.css";
 
 const geistSans = Geist({

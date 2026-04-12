@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 interface HamburgerMenuProps {
 	isOpen: boolean;

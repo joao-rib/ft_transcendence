@@ -1,14 +1,14 @@
 "use client";
 
-import LoginModal from "./components/LoginModal";
-import SignupModal from "./components/SignupModal";
-import Background from "./components/Background";
-import AuthCard from "./components/AuthCard";
-import HomeFeatureCards from "./components/HomeFeatureCards";
-import HomeFooterLinks from "./components/HomeFooterLinks";
-import HomeHero from "./components/HomeHero";
-import { useHomePageController } from "./hooks/useHomePageController";
-import ThemeSwitcher from "../components/ThemeSwitcher";
+import LoginModal from "./frontend/components/LoginModal";
+import SignupModal from "./frontend/components/SignupModal";
+import Background from "./frontend/components/Background";
+import AuthCard from "./frontend/components/AuthCard";
+import HomeFeatureCards from "./frontend/components/HomeFeatureCards";
+import HomeFooterLinks from "./frontend/components/HomeFooterLinks";
+import HomeHero from "./frontend/components/HomeHero";
+import { useHomePageController } from "./frontend/hooks/useHomePageController";
+import ThemeSwitcher from "./frontend/components/ThemeSwitcher";
 
 export default function Home() {
   const {
