@@ -4,8 +4,8 @@ export const createPosition = () => {
 	const position = new Array(8).fill('').map(x => new Array(8).fill(''))
 
 	for (let i = 0; i < 8; i++) {
-		position[1][i] = 'wpp'
-		position[6][i] = 'bpp'
+		position[1][i] = 'wp'
+		position[6][i] = 'bp'
 	}
 
 	position[0][0] = 'wr'
@@ -28,3 +28,15 @@ export const createPosition = () => {
 
 	return position
 }
+
+export const copyPosition = (position) => {
+  const newPosition = new Array(8).fill("").map((x) => new Array(8).fill(""));
+
+  for (let rank = 0; rank < position.length; rank++) {
+    for (let file = 0; file < position[0].length; file++) {
+      newPosition[rank][file] = position[rank][file];
+    }
+  }
+
+  return newPosition;
+};
