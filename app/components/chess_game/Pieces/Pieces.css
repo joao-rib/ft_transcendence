@@ -1,9 +1,9 @@
 .pieces {
-	position: absolute;
-	left: calc(.25*var(--tile-size));
 	right: 0;
 	top: 0;
-	bottom: calc(.25*var(--tile-size));
+	position: absolute;
+	left: calc(.25*var(--tile-size));
+    bottom: calc(.25*var(--tile-size));
 }
 
 .piece {
@@ -12,3 +12,15 @@
     background-size: 100%;
     position: absolute;
 }
+
+.piece.bk {background-image: url('../../../../assets/black_king.png');}
+.piece.bq {background-image: url('../../../../assets/black_queen.png');}
+.piece.br {background-image: url('../../../../assets/black_rook.png');}
+.piece.bb {background-image: url('../../../../assets/black_bishop.png');}
+.piece.bn {background-image: url('../../../../assets/black_knight.png');}
+
+.piece.bk {background-image: url('../../../../assets/white_king.png');}
+.piece.bq {background-image: url('../../../../assets/white_queen.png');}
+.piece.br {background-image: url('../../../../assets/white_rook.png');}
+.piece.bb {background-image: url('../../../../assets/white_bishop.png');}
+.piece.bn {background-image: url('../../../../assets/white_knight.png');}

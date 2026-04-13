@@ -1,11 +1,13 @@
 const Piece = ({
-	rank,
-	file,
-	piece,
+    rank,
+    file,
+    piece,
 }) => {
+
 	return (
 		<div 
 			className={`piece ${piece} p-${rank}${file}`}
+			
 		/>
 	)
 }
