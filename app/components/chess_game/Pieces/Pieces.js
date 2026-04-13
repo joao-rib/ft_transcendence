@@ -5,7 +5,7 @@ import Piece from './Piece'
 import { useState, useRef } from 'react'
 import { createPosition, copyPosition } from '../helper'
 import { useAppContext } from '@/app/contexts/Context'
-import { makeNewMove } from '@/app/contexts/reducer/actions/move'
+import { makeNewMove } from '@/app/reducer/actions/move'
 
 const Pieces = () => {
 
