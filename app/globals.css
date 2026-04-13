@@ -7,6 +7,7 @@
   --light-tile: #f0D8b7;
   --dark-tile: #B48764;
   --tile-size: 72px;
+  --hightlight : rgba(0,0,0,.1);
 }
 
 @theme inline {

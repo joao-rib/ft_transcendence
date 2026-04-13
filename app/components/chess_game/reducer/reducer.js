@@ -1,4 +1,5 @@
 import actionTypes from "./actionTypes"
+import { Status } from "../constants"
 
 export const reducer = (state, action) => {
 
@@ -17,6 +18,13 @@ export const reducer = (state, action) => {
 				...state,
 				turn,
 				position,
+			}
+		}
+		case actionTypes.GENERATE_CANDIDATE_MOVES : {
+
+			return {
+				...state,
+				candidateMoves : action.payload.candidateMoves
 			}
 		}
 

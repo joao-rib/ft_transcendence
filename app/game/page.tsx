@@ -19,7 +19,7 @@ export default async function GamePage({ searchParams }: GamePageProps) {
 
 import { useReducer } from 'react'
 import Board from "@/app/components/chess_game/Board";
-import { initGameState } from "../components/chess_game/constant"
+import { initGameState } from "../components/chess_game/constants"
 import AppContext from '../contexts/Context'
 import { reducer } from "../components/chess_game/reducer/reducer";
 
