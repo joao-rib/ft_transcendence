@@ -41,10 +41,10 @@ export default function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) 
 						<a href="#new-game" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							New Game
 						</a>
-						<Link href="/rules" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
+						<Link href="/rules" onClick={onToggle} className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							Rules
 						</Link>
-						<Link href="/rankings" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
+						<Link href="/rankings" onClick={onToggle} className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							Leaderboard
 						</Link>
 						<a href="#settings" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
