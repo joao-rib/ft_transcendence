@@ -1,4 +1,4 @@
-import { createPosition } from "./components/chess_game/helper";
+import { createPosition } from "./helper";
 
 export const initGameState = {
 	position : [createPosition()],
