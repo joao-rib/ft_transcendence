@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+/* import { Suspense } from "react";
 import ChessGame from "@/app/components/chess-game";
 
 interface GamePageProps {
@@ -12,5 +12,15 @@ export default async function GamePage({ searchParams }: GamePageProps) {
     <Suspense fallback={<div className="mx-auto w-full max-w-7xl px-6 py-10">Loading game...</div>}>
       <ChessGame gameId={gameId} username={username} />
     </Suspense>
+  );
+} */
+
+import Board from "@/app/components/chess_game/Board";
+
+export default function GamePage() {
+  return (
+    <div className="App">
+      <Board/>
+    </div>
   );
 }
