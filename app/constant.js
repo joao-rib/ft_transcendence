@@ -1,6 +1,6 @@
 import { createPosition } from "./components/chess_game/helper";
 
 export const initGameState = {
-	position : createPosition(),
+	position : [createPosition()],
 	turn :'w'
 }

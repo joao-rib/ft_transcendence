@@ -19,21 +19,21 @@ export default async function GamePage({ searchParams }: GamePageProps) {
 
 import { useReducer } from 'react'
 import Board from "@/app/components/chess_game/Board";
-import AppContext from '../contexts/Context'
-import { reducer } from "../contexts/reducer/reducer";
 import { initGameState } from "../constant"
+import AppContext from '../contexts/Context'
+import { reducer } from "../reducer/reducer";
 
 export default function GamePage() {
 
-	const [appstate,dispatch] = useReducer(reducer, initGameState)
+	const [appState, dispatch] = useReducer(reducer, initGameState)
 
 	const providerState = {
-		appstate,
+		appState,
 		dispatch,
 	}
 
   	return (
-		<AppContext.Provider value={{ providerState }} >
+		<AppContext.Provider value={ providerState } >
     		<div className='App'>
     	  		<Board/>
     		</div>

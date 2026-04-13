@@ -5,13 +5,13 @@ import Piece from './Piece'
 import { useState, useRef } from 'react'
 import { createPosition, copyPosition } from '../helper'
 import { useAppContext } from '@/app/contexts/Context'
-import { newPosition } from '../../reducer/actions/game'
+import { makeNewMove } from '@/app/contexts/reducer/actions/move'
 
 const Pieces = () => {
 
 	const ref = useRef()
 	const {appState, dispatch} = useAppContext()
-	const currentPosition = appState.position
+	const currentPosition = appState.position[appState.position.length - 1]
 
 	 const calculateCoords = e => {
         const {top,left,width} = ref.current.getBoundingClientRect()
