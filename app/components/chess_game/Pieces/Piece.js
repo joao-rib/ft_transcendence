@@ -6,7 +6,7 @@ const Piece = ({
 
 	return (
 		<div 
-			className={`piece ${piece} p-${file}${rank}`}
+			className={`piece ${piece} pos-${file}${rank}`}
 			draggable={true}
 			
 		/>
