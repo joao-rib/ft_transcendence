@@ -1,8 +1,10 @@
+import actionTypes from "./actionTypes"
+
 export const reducer = (state, action) => {
 
 	switch (action.type) {
 
-		case 'NEW_MOVE' : {
+		case actionTypes.NEW_MOVE : {
 	
 			let {turn,position} = state
 			turn = turn === 'w' ? 'b' : 'w'
