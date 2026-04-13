@@ -20,11 +20,16 @@ const Pieces = () => {
     }
 
 	const onDrop = e => {
+
 		const newPostion = copyPosition(state)
 		const {x,y} = calculateCoords(e)
-		const [p, rank,file] = e.dataTransfer.getData('text').split(',')
+
+		const [pos,rank,file] = e.dataTransfer.getData('text').split(',')
+
 		newPosition[rank][file] = ''
-		newPosition[x][y] = p
+		newPosition[x][y] = pos
+
+		setState(newPostion)
 	}
 	const onDragOver = e => e.preventDefault()
 

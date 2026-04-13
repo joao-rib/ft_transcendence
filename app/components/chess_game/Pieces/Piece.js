@@ -12,11 +12,16 @@ const Piece = ({
         },0)
 	}
 
+	const onDragEnd = e => {
+       e.target.style.display = 'block'
+    }
+
 	return (
 		<div 
 			className={`piece ${piece} pos-${file}${rank}`}
 			draggable={true}
 			onDragStart={onDragStart}
+			onDragEnd={onDragEnd}
 		/>
 	)
 }
