@@ -37,3 +37,5 @@ const Board = () => {
 }
 
 export default Board
+
+// http://localhost:3000/game 

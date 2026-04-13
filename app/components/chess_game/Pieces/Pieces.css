@@ -1,0 +1,14 @@
+.pieces {
+	position: absolute;
+	left: calc(.25*var(--tile-size));
+	right: 0;
+	top: 0;
+	bottom: calc(.25*var(--tile-size));
+}
+
+.piece {
+    width: 12.5%;
+    height: 12.5%;
+    background-size: 100%;
+    position: absolute;
+}
