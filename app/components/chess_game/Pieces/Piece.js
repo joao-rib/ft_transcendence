@@ -8,8 +8,8 @@ const Piece = ({
     piece,
 }) => {
 
-	const {appState, dispatch} = useAppContext()
-	const {turn, position} = appState;
+	const { appState, dispatch } = useAppContext()
+	const { turn, position } = appState;
 	const currentPosition = position[position.length - 1]
 
 	const onDragStart = e => {
@@ -20,7 +20,7 @@ const Piece = ({
         },0)
 		if (turn === piece[0]) {
 			const candidateMoves = arbiter.getRegularMoves({position:currentPosition, piece, rank, file})
-			dispatch(generateCandidateMoves(candidateMoves))
+			dispatch(generateCandidateMoves({candidateMoves}))
 		}
 	}
 

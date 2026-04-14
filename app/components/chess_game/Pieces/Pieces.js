@@ -6,6 +6,7 @@ import { useState, useRef } from 'react'
 import { createPosition, copyPosition } from '../helper'
 import { useAppContext } from '@/app/contexts/Context'
 import { makeNewMove } from '../reducer/actions/move'
+import arbiter from '../arbiter/arbiter'
 
 const Pieces = () => {
 
@@ -33,13 +34,13 @@ const Pieces = () => {
 		newPosition[x][y] = pos
 		dispatch(makeNewMove({newPosition}))
 	}
-	const onDragOver = e => e.preventDefault()
+	const onDragOver = e => {e.preventDefault()}
 
 	return <div
+		className='pieces'>
 		ref = {ref}
 		onDrop={onDrop}
 		onDragOver={onDragOver}
-		className='pieces'>
 		{currentPosition.map((r,rank) => 
 			r.map((f,file) =>
 				currentPosition[rank][file]

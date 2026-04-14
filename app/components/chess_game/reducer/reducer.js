@@ -8,16 +8,16 @@ export const reducer = (state, action) => {
 		case actionTypes.NEW_MOVE : {
 	
 			let {turn,position} = state
-			turn = turn === 'w' ? 'b' : 'w'
 
 			position = [
 				...position,
 				action.payload.newPosition
 			]
+			turn = turn === 'w' ? 'b' : 'w'
 			return {
 				...state,
-				turn,
 				position,
+				turn,
 			}
 		}
 		case actionTypes.GENERATE_CANDIDATE_MOVES : {
