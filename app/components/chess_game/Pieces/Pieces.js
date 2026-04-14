@@ -5,7 +5,7 @@ import Piece from './Piece'
 import { useState, useRef } from 'react'
 import { createPosition, copyPosition } from '../helper'
 import { useAppContext } from '@/app/contexts/Context'
-import { makeNewMove } from '../reducer/actions/move'
+import { clearCandidates, makeNewMove } from '../reducer/actions/move'
 import arbiter from '../arbiter/arbiter'
 
 const Pieces = () => {
@@ -30,17 +30,21 @@ const Pieces = () => {
 
 		const [pos,rank,file] = e.dataTransfer.getData('text').split(',')
 
-		newPosition[rank][file] = ''
-		newPosition[x][y] = pos
-		dispatch(makeNewMove({newPosition}))
+		if (appState.candidateMoves?.find(m => m[0] === x && m[1] === y)) {
+			newPosition[rank][file] = ''
+			newPosition[x][y] = pos
+			dispatch(makeNewMove({newPosition}))
+		}
+
+		dispatch(clearCandidates())
 	}
 	const onDragOver = e => {e.preventDefault()}
 
 	return <div
-		className='pieces'>
-		ref = {ref}
+		className='pieces'
+		ref={ref}
 		onDrop={onDrop}
-		onDragOver={onDragOver}
+		onDragOver={onDragOver}>
 		{currentPosition.map((r,rank) => 
 			r.map((f,file) =>
 				currentPosition[rank][file]
