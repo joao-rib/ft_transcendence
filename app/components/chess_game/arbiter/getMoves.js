@@ -82,3 +82,11 @@ export const getBishopMoves = ({position,piece,rank,file}) => {
     return moves
 }
 
+export const getQueenMoves = ({position,piece,rank,file}) => {
+    const moves = [
+        ...getBishopMoves({position,piece,rank,file}),
+        ...getRookMoves({position,piece,rank,file})
+    ]
+    
+    return moves
+}
