@@ -21,7 +21,9 @@ RUN pnpm install --frozen-lockfile
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.ts ./next.config.ts
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/server.mjs ./server.mjs
 COPY --from=builder /app/socket-handlers ./socket-handlers
+COPY --from=builder /app/prisma ./prisma
 EXPOSE 3000
 CMD ["pnpm", "start"]
