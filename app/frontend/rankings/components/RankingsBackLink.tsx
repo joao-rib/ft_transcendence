@@ -7,8 +7,8 @@ export default function RankingsBackLink() {
 			className="fixed top-8 left-8 z-20 transition-colors hover:opacity-80 flex items-center gap-2 text-lg"
 			style={{ color: "var(--text-accent)" }}
 		>
-			<span>←</span>
-			<span>Back to Home</span>
+			<span className="inline-flex items-center leading-none">←</span>
+			<span className="inline-flex items-center leading-none">Back to Home</span>
 		</Link>
 	);
 }
