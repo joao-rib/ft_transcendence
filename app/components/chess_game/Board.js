@@ -2,6 +2,7 @@ import './Board.css'
 import Ranks from './bits/Ranks'
 import Files from './bits/Files'
 import Pieces from './Pieces/Pieces'
+import Popup from './Popup/Popup'
 import { useAppContext } from '@/app/contexts/Context'
 
 const Board = () => {
@@ -42,6 +43,7 @@ const Board = () => {
 		</div>
 
 		<Pieces/>
+		<Popup/>
 
 		<Files files={files}/>
 	</div>
@@ -49,4 +51,4 @@ const Board = () => {
 
 export default Board
 
-// http://localhost:3000/game 
+// http://localhost:3000/game

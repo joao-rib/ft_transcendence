@@ -29,13 +29,11 @@ const arbiter = {
 		return moves
 	},
 
-	performMove : function ({position, piece, rank, file, x, y}) => {
+	performMove : function({position, piece, rank, file, x, y}) {
 		if (piece.endsWith('p'))
 			return movePawn({position, piece, rank, file, x, y})
-
-		else {
+		else
 			return movePiece({position, piece, rank, file, x, y})
-		}
 	}
 }
 

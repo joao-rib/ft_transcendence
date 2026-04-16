@@ -1,5 +1,14 @@
 import { copyPosition } from '../helper'
 
+export const movePiece = ({position, piece, rank, file, x, y}) => {
+
+    const newPosition = copyPosition(position)
+
+    newPosition[rank][file] = ''
+    newPosition[x][y] = piece
+    return newPosition
+}
+
 export const movePawn = ({position,piece,rank,file,x,y}) => {
 
     const newPosition = copyPosition(position)
