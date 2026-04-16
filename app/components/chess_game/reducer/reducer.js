@@ -1,5 +1,5 @@
-import actionTypes from "./actionTypes"
 import { Status } from "../constants"
+import actionTypes from "./actionTypes"
 
 export const reducer = (state, action) => {
 
@@ -41,7 +41,16 @@ export const reducer = (state, action) => {
 			return {
 				...state,
 				status : Status.promoting,
-				promotingSquare : {...action.payload}
+				promotionSquare : {...action.payload},
+			}
+		}
+
+		case actionTypes.PROMOTION_CLOSE : {
+
+			return {
+				...state,
+				status : Status.ongoing,
+				promotionSquare : null,
 			}
 		}
 
