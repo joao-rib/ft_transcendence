@@ -26,4 +26,4 @@ COPY --from=builder /app/server.mjs ./server.mjs
 COPY --from=builder /app/socket-handlers ./socket-handlers
 COPY --from=builder /app/prisma ./prisma
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "pnpm prisma generate && pnpm prisma migrate deploy && pnpm start"]
