@@ -32,7 +32,7 @@ const Board = () => {
 		<div className='tiles'>
 			{ranks.map((rank,i) =>
 				files.map((file,j) =>
-					<div 
+					<div
 						key={file+''+rank} 
                         i={i}
                         j={j}
