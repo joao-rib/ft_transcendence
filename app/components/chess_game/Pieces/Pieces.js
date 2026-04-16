@@ -6,6 +6,7 @@ import { useState, useRef } from 'react'
 import { createPosition, copyPosition } from '../helper'
 import { useAppContext } from '@/app/contexts/Context'
 import { clearCandidates, makeNewMove } from '../reducer/actions/move'
+import { openPromotion } from '../reducer/actions/popup'
 import arbiter from '../arbiter/arbiter'
 
 const Pieces = () => {
@@ -23,12 +24,21 @@ const Pieces = () => {
         return {x,y}
     }
 
+	const openPromotionBox = ({rank, file, x, y}) =>
+		dispatch(openPromotion({
+			rank, file, x, y
+		}))
+
 	const move = e => {
 
 		const {x,y} = calculateCoords(e)
 
 		const [piece,rank,file] = e.dataTransfer.getData('text').split(',')
 		if (appState.candidateMoves?.find(m => m[0] === x && m[1] === y)) {
+			if ((piece === 'wp' && x === 7) || (piece === 'bp' && x === 0)) {
+				 openPromotionBox({rank, file, x, y})
+				 return  
+			}
 			const newPosition = arbiter.performMove({
 				position : currentPosition,
 				piece, rank, file,

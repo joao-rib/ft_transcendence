@@ -36,6 +36,15 @@ export const reducer = (state, action) => {
 			}
 		}
 
+		case actionTypes.PROMOTION_OPEN : {
+
+			return {
+				...state,
+				status : Status.promoting,
+				promotingSquare : {...action.payload}
+			}
+		}
+
 		default :
 			return state
 	}
