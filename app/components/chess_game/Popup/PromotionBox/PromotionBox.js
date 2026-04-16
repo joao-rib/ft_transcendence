@@ -1,26 +1,31 @@
+import { useAppContext } from '@/app/contexts/Context'
 import './PromotionBox.css'
 
 const PromotionBox = () => {
 	const options = ['q', 'r', 'b', 'n']
-	const color = 'w'
 
-	const x = 7
-	const y = 6
+	const {appState} = useAppContext()
+	const {promotionSquare} = appState
+
+	if (!promotionSquare)
+		return null
+
+	const color = promotingSquare.x === 7 ? 'w' : 'b'
 
 	const getPromotionBoxPosition = () => {
 		const style = {}
 
-		if (x === 7)
+		if (promotionSquare.x === 7)
 			style.top = '-12.5%'
 		else
 			style.top = '97.5%'	
 
-		if (y <= 1)
+		if (promotionSquare.y <= 1)
 			style.left = '0%'
-		else if (y >= 6)
+		else if (promotionSquare.y >= 6)
 			style.right = '0%'
 		else
-			style.left = `${12.5 * y - 20}%`
+			style.left = `${12.5 * promotionSquare.y - 20}%`
 
 		return style
 	}

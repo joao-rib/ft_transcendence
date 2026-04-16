@@ -26,7 +26,9 @@ const Pieces = () => {
 
 	const openPromotionBox = ({rank, file, x, y}) =>
 		dispatch(openPromotion({
-			rank, file, x, y
+			rank : Number(rank), 
+			file : Number(file), 
+			x, y
 		}))
 
 	const move = e => {
