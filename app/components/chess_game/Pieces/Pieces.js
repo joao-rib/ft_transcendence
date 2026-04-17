@@ -2,18 +2,29 @@
 
 import './Pieces.css'
 import Piece from './Piece'
+import { useRef } from "react";
 import { useAppContext } from '@/app/contexts/Context'
-import { clearCandidates, makeNewMove } from '../reducer/actions/move'
 import { openPromotion } from '../reducer/actions/popup'
-import arbiter from '../arbiter/arbiter'
-import { getCastlingDirections } from '../arbiter/getMoves'
+import { getCastleDirections } from "../arbiter/getMoves"
 import { updateCastling } from "../reducer/actions/game"
+import { makeNewMove, clearCandidates } from '../reducer/actions/move'
+import arbiter from '../arbiter/arbiter'
+
 
 const Pieces = () => {
 
-	const ref = useRef()
 	const {appState, dispatch} = useAppContext()
 	const currentPosition = appState.position[appState.position.length - 1]
+	
+	const ref = useRef()
+
+	const openPromotionBox = ({rank, file, x, y}) => {
+		dispatch(openPromotion({
+			rank : Number(rank), 
+			file : Number(file), 
+			x, y
+		}))
+	}
 
 	 const calculateCoords = e => {
         const {top,left,width} = ref.current.getBoundingClientRect()
@@ -24,21 +35,16 @@ const Pieces = () => {
         return {x,y}
     }
 
-	const openPromotionBox = ({rank, file, x, y}) =>
-		dispatch(openPromotion({
-			rank : Number(rank), 
-			file : Number(file), 
-			x, y
-		}))
-
 	const updateCastlingState = ({piece, rank, file}) => {
 		const direction = getCastleDirections({
-			getCastleDirections : appState.castleDirection,
-			piece, rank, file
+			castleDirection:appState.castleDirection,
+			piece, 
+			rank, 
+			file
 		})
 
 		if (direction) {
-			dispatch(updateCastlingState(direction))
+			dispatch(updateCastling(direction))
 		}
 	}
 

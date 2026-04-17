@@ -181,7 +181,7 @@ export const getCastlingMoves = ({position, castleDirection, piece, rank, file})
 				moves.push([0,2])
 			}
 
-	if (['left', 'both'].includes(castleDirection) && 
+	if (['right', 'both'].includes(castleDirection) && 
 		!position[0][5] && 
 		!position[0][6] && 
 		position[0][7] === 'wr') {
@@ -196,7 +196,7 @@ export const getCastlingMoves = ({position, castleDirection, piece, rank, file})
 				moves.push([7,2])
 			}
 
-	if (['left', 'both'].includes(castleDirection) && 
+	if (['right', 'both'].includes(castleDirection) && 
 		!position[7][5] && 
 		!position[7][6] && 
 		position[7][7] === 'br') {
@@ -208,35 +208,34 @@ export const getCastlingMoves = ({position, castleDirection, piece, rank, file})
 }
 
 export const getCastleDirections = ({castleDirection, piece, rank, file}) => {
-	const direction = castleDirection[piece[0]];
+	rank = Number(rank)
+	file = Number(file)
+	const direction = castleDirection[piece[0]]
 	if (piece.endsWith('k'))
 		return 'none'
 
-	if (file === 0 && rank === 0) {
-		 if (direction === 'both')
-			return 'right'
-		 else if (direction === 'left')
-				return 'none'
-	}
-
-	if (file === 7 && rank === 0) {
-		 if (direction === 'both')
-			return 'right'
-		 else if (direction === 'left')
-				return 'none'
-	}
-
-	if (file === 0 && rank === 7) {
-		 if (direction === 'both')
-			return 'right'
-		 else if (direction === 'left')
-				return 'none'
-	}
-
-	if (file === 7 && rank === 7) {
-		 if (direction === 'both')
-			return 'right'
-		 else if (direction === 'left')
-				return 'none'
-	}
+	if (file === 0 && rank === 0 ){ 
+        if (direction === 'both')
+            return 'right'
+        if (direction === 'left')
+            return 'none'
+    } 
+    if (file === 7 && rank === 0 ){ 
+        if (direction === 'both')
+            return 'left'
+        if (direction === 'right')
+            return 'none'
+    } 
+    if (file === 0 && rank === 7 ){ 
+        if (direction === 'both')
+            return 'right'
+        if (direction === 'left')
+            return 'none'
+    } 
+    if (file === 7 && rank === 7 ){ 
+        if (direction === 'both')
+            return 'left'
+        if (direction === 'right')
+            return 'none'
+    }
 }
