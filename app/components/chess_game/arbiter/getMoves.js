@@ -206,3 +206,37 @@ export const getCastlingMoves = ({position, castleDirection, piece, rank, file})
 
 	return moves
 }
+
+export const getCastleDirections = ({castleDirection, piece, rank, file}) => {
+	const direction = castleDirection[piece[0]];
+	if (piece.endsWith('k'))
+		return 'none'
+
+	if (file === 0 && rank === 0) {
+		 if (direction === 'both')
+			return 'right'
+		 else if (direction === 'left')
+				return 'none'
+	}
+
+	if (file === 7 && rank === 0) {
+		 if (direction === 'both')
+			return 'right'
+		 else if (direction === 'left')
+				return 'none'
+	}
+
+	if (file === 0 && rank === 7) {
+		 if (direction === 'both')
+			return 'right'
+		 else if (direction === 'left')
+				return 'none'
+	}
+
+	if (file === 7 && rank === 7) {
+		 if (direction === 'both')
+			return 'right'
+		 else if (direction === 'left')
+				return 'none'
+	}
+}
