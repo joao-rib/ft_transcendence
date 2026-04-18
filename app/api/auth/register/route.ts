@@ -28,7 +28,6 @@ export async function POST(request: Request) {
       data: {
         username,
         email,
-        password: passwordHash,
         passwordHash,
       },
       select: {
