@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "prisma generate",
     "dev": "node server.mjs",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "node server.mjs",
     "lint": "eslint"
