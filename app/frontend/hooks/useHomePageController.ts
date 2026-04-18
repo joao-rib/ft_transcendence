@@ -21,15 +21,34 @@ export function useHomePageController() {
 
 	const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const formData = new FormData(e.currentTarget);
-		const data = {
-			username: formData.get("username"),
-			email: formData.get("email"),
-			password: formData.get("password"),
-		};
+		try {
+			const formData = new FormData(e.currentTarget);
+			const data = {
+				username: String(formData.get("username") ?? ""),
+				email: String(formData.get("email") ?? ""),
+				password: String(formData.get("password") ?? ""),
+			};
 
-		// TODO: Connect to your PostgreSQL backend API.
-		console.log("Signup data:", data);
+			const response = await fetch("/api/auth/register", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			});
+
+			if (!response.ok) {
+				const result = (await response.json().catch(() => null)) as { error?: string } | null;
+				const message = result?.error ?? "Could not create account.";
+				throw new Error(message);
+			}
+
+			e.currentTarget.reset();
+			setSignupOpen(false);
+			setLoginOpen(true);
+		} catch (error) {
+			console.error("Signup failed", error);
+		}
 	};
 
 	const openLogin = () => setLoginOpen(true);
