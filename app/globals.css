@@ -1,12 +1,25 @@
 @import "tailwindcss";
 @import "./themes.css";
-@import "./components/chess_game/constants.css";
+
+:root {
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --light-tile: #f0D8b7;
+  --dark-tile: #B48764;
+  --tile-size: 72px;
+}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@media all and (max-width: 450px) {
+  :root {
+    --tile-size: 50px;
+  }
 }
 
 .App {

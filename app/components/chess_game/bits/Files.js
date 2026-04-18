@@ -1,4 +1,4 @@
-import { getCharacter } from '@/app/components/chess_game/helper'
+import { getCharacter } from '@/app/helper'
 import './Files.css'
 
 const Files = ({files}) => {

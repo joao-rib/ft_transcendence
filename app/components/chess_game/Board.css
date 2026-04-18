@@ -1,47 +1,22 @@
 .board {
-  	display: grid;
-  	position: relative;
-	grid-template-columns: calc(.25*var(--tile-size)) calc(8*var(--tile-size));
+  display: grid;
+  grid-template-columns: calc(0.25 * var(--tile-size)) calc(8 * var(--tile-size));
+  grid-template-rows: calc(8 * var(--tile-size)) calc(0.25 * var(--tile-size));
 }
 
 .tiles {
+  grid-column: 2;
+  grid-row: 1;
   display: grid;
   grid-template-columns: repeat(8, var(--tile-size));
   grid-template-rows: repeat(8, var(--tile-size));
   width: calc(8 * var(--tile-size));
 }
 
-.tile{
-	position: relative;
-}
-
 .tile--light {
-    background-color: var(--light-tile);
+  background: var(--light-tile);
 }
+
 .tile--dark {
-    background-color: var(--dark-tile);
-}
-
-.highlight:after {
-    content: '';
-    display: block;
-    position: absolute;
-    width : calc(.5*var(--tile-size));
-    height : calc(.5*var(--tile-size));
-    background: var(--highlight);
-    border-radius: 50%;
-    left: 25%;
-    top: 25%;
-}
-
-.attacking:after {
-    content: '';
-    display: block;
-    position: absolute;
-    height : calc(var(--tile-size) - 12px);
-    width : calc(var(--tile-size) - 12px);
-    border-radius: 50%;
-    left: 0;
-    top: 0;
-    border: 6px solid var(--highlight);
+  background: var(--dark-tile);
 }

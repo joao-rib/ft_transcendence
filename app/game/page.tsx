@@ -1,4 +1,4 @@
-/* import { Suspense } from "react";
+import { Suspense } from "react";
 import ChessGame from "@/app/components/chess-game";
 
 interface GamePageProps {
@@ -13,30 +13,4 @@ export default async function GamePage({ searchParams }: GamePageProps) {
       <ChessGame gameId={gameId} username={username} />
     </Suspense>
   );
-} */
-
-'use client'
-
-import { useReducer } from 'react'
-import Board from "@/app/components/chess_game/Board";
-import { initGameState } from "../components/chess_game/constants"
-import AppContext from '../contexts/Context'
-import { reducer } from "../components/chess_game/reducer/reducer";
-
-export default function GamePage() {
-
-	const [appState, dispatch] = useReducer(reducer, initGameState)
-
-	const providerState = {
-		appState,
-		dispatch,
-	}
-
-  	return (
-		<AppContext.Provider value={ providerState } >
-    		<div className='App'>
-    	  		<Board/>
-    		</div>
-		</AppContext.Provider>
-  	);
 }
