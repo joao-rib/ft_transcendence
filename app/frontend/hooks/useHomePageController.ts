@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { registerUser } from "@/app/actions/authActions";
 
 export function useHomePageController() {
+	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const [signupOpen, setSignupOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -34,14 +36,22 @@ export function useHomePageController() {
 				redirect: false, // We'll handle redirect manually
 			});
 
+			console.log("[handleLogin] signIn result:", result);
+
 			if (!result?.ok) {
 				setError(result?.error || "Login failed");
+				console.error("[handleLogin] Login failed:", result?.error);
 				return;
 			}
 
-			// Close modal on successful login
+			console.log("[handleLogin] Login successful, about to redirect");
+			// Redirect to lobby after successful login (do this BEFORE closing modal to avoid form element issues)
+			console.log("[handleLogin] Calling router.push('/game/lobby')");
+			router.push("/game/lobby");
+			
+			// Close modal after redirect is initiated
 			setLoginOpen(false);
-			e.currentTarget.reset();
+			console.log("[handleLogin] router.push() called");
 		} catch (err) {
 			setError("An error occurred during login");
 			console.error("[handleLogin] Error:", err);
@@ -77,11 +87,15 @@ export function useHomePageController() {
 			// Call Server Action to register user
 			const result = await registerUser(username, email, password);
 
+			console.log("[handleSignup] registerUser result:", result);
+
 			if (!result.success) {
 				setError(result.message);
+				console.error("[handleSignup] Registration failed:", result.message);
 				return;
 			}
 
+			console.log("[handleSignup] Registration successful, attempting auto-login");
 			// Auto sign-in after successful registration
 			const signInResult = await signIn("credentials", {
 				email,
@@ -89,14 +103,22 @@ export function useHomePageController() {
 				redirect: false,
 			});
 
+			console.log("[handleSignup] signIn result:", signInResult);
+
 			if (!signInResult?.ok) {
 				setError("Registration successful, but auto-login failed");
+				console.error("[handleSignup] Auto-login failed:", signInResult?.error);
 				return;
 			}
 
-			// Close signup modal and reset form
+			console.log("[handleSignup] Auto-login successful, about to redirect");
+			// Redirect to lobby after successful signup (do this BEFORE closing modal to avoid form element issues)
+			console.log("[handleSignup] Calling router.push('/game/lobby')");
+			router.push("/game/lobby");
+			
+			// Close modal after redirect is initiated
 			setSignupOpen(false);
-			e.currentTarget.reset();
+			console.log("[handleSignup] router.push() called");
 		} catch (err) {
 			setError("An error occurred during signup");
 			console.error("[handleSignup] Error:", err);

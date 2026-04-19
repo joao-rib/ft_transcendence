@@ -122,10 +122,6 @@ const authOptions: NextAuthOptions = {
 			return session;
 		},
 	},
-	pages: {
-		signIn: "/", // Redirect to home on sign-in
-		error: "/", // Redirect errors to home
-	},
 	secret: process.env.NEXTAUTH_SECRET,
 };
 
