@@ -7,13 +7,13 @@ export default function HomeFooterLinks() {
 				Rules
 			</Link>
 			<span style={{ color: "var(--text-muted)" }}>•</span>
-			<a href="#privacy" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-				Privacy
-			</a>
+			<Link href="/privacy" className="transition-colors" style={{ color: "var(--text-accent)" }}>
+				Privacy Policy
+			</Link>
 			<span style={{ color: "var(--text-muted)" }}>•</span>
-			<a href="#support" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-				Support
-			</a>
+			<Link href="/terms" className="transition-colors" style={{ color: "var(--text-accent)" }}>
+				Terms of Service
+			</Link>
 		</div>
 	);
 }

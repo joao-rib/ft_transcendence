@@ -1,30 +1,41 @@
 "use client";
 
-import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function useGameController() {
-	const [playerName, setPlayerName] = useState("Player");
-	const [playerStats, setPlayerStats] = useState({
+	const router = useRouter();
+	const [playerName] = useState("Player");
+	const [playerStats] = useState({
 		wins: 0,
 		losses: 0,
 		rank: "Beginner",
 	});
 
+	const createGameId = () => {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `game-${Date.now()}`;
+	};
+
 	const handleDisconnect = () => {
-		console.log("Disconnecting...");
+		router.push("/");
 	};
 
 	const handleSettings = () => {
-		console.log("Opening settings...");
+		router.push("/rules");
 	};
 
 	const handleRankings = () => {
-		console.log("Opening rankings...");
+		router.push("/rankings");
 	};
 
 	const handleStartGame = () => {
-		console.log("Starting game...");
+		const gameId = createGameId();
+		const username = encodeURIComponent(playerName.toLowerCase());
+		router.push(`/game?gameId=${gameId}&username=${username}`);
 	};
 
 	return {

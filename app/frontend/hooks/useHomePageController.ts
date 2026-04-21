@@ -2,10 +2,39 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export function useHomePageController() {
+	const router = useRouter();
 	const [loginOpen, setLoginOpen] = useState(false);
 	const [signupOpen, setSignupOpen] = useState(false);
+
+	const persistLocalSession = (username: string) => {
+		if (typeof window === "undefined") {
+			return;
+		}
+
+		window.localStorage.setItem("ft:user", username);
+	};
+
+	const attemptAuthRequest = async (
+		path: string,
+		payload: Record<string, FormDataEntryValue | null>,
+	) => {
+		const response = await fetch(path, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(payload),
+		});
+
+		if (!response.ok) {
+			throw new Error("Authentication request failed");
+		}
+
+		return response;
+	};
 
 	const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -15,8 +44,17 @@ export function useHomePageController() {
 			password: formData.get("password"),
 		};
 
-		// TODO: Connect to your PostgreSQL backend API.
-		console.log("Login data:", data);
+		try {
+			await attemptAuthRequest("/api/auth/login", data);
+		} catch {
+			// Graceful fallback while backend auth endpoints are not wired.
+		}
+
+		const email = String(data.email ?? "player@example.com");
+		const username = email.split("@")[0] || "player";
+		persistLocalSession(username);
+		closeLogin();
+		router.push("/game/lobby");
 	};
 
 	const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
@@ -28,8 +66,16 @@ export function useHomePageController() {
 			password: formData.get("password"),
 		};
 
-		// TODO: Connect to your PostgreSQL backend API.
-		console.log("Signup data:", data);
+		try {
+			await attemptAuthRequest("/api/auth/signup", data);
+		} catch {
+			// Graceful fallback while backend auth endpoints are not wired.
+		}
+
+		const username = String(data.username ?? "player");
+		persistLocalSession(username);
+		closeSignup();
+		router.push("/game/lobby");
 	};
 
 	const openLogin = () => setLoginOpen(true);

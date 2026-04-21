@@ -84,11 +84,14 @@ export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup
 							Sign In
 						</button>
 					</form>
-					{/*//TODO: Vamos fazer um forgot password?*/}
 					<div className="mt-6 text-center">
-						<button className="text-sm transition-colors" style={{ color: "var(--text-accent)" }}> 
+						<a
+							href="mailto:support@ft-transcendence.local?subject=Password%20Reset"
+							className="text-sm transition-colors"
+							style={{ color: "var(--text-accent)" }}
+						>
 							Forgot password?
-						</button> 
+						</a>
 					</div>
 					<div className="mt-6 text-center">
 						<p className="text-sm" style={{ color: "var(--text-accent)" }}>

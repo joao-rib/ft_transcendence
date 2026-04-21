@@ -47,6 +47,12 @@ export default function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) 
 						<Link href="/rankings" onClick={onToggle} className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							Leaderboard
 						</Link>
+						<Link href="/privacy" onClick={onToggle} className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
+							Privacy Policy
+						</Link>
+						<Link href="/terms" onClick={onToggle} className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
+							Terms of Service
+						</Link>
 						<a href="#settings" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							Settings
 						</a>
