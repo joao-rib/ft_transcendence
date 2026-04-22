@@ -1,5 +1,5 @@
 import { Status } from '../../constants';
-import { useAppContext }from '../../contexts/Context'
+import { useAppContext }from '@/app/contexts/Context'
 import { setupNewGame } from '../../reducer/actions/game';
 import './GameEnds.css'
 

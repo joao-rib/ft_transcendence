@@ -5,7 +5,7 @@ import Piece from './Piece'
 import { useRef } from "react";
 import { useAppContext } from '@/app/contexts/Context'
 import { openPromotion } from '../reducer/actions/popup'
-import { getCastleDirections } from "../arbiter/getMoves"
+import { getCastlingDirections } from "../arbiter/getMoves"
 import { updateCastling, detectStalemate, detectInsufficientMaterial, detectCheckmate } from "../reducer/actions/game"
 
 import { makeNewMove, clearCandidates } from '../reducer/actions/move'

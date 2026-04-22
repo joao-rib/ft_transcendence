@@ -24,7 +24,6 @@ import { initGameState } from "../components/chess_game/constants"
 import AppContext from '../contexts/Context'
 import Control from '../components/chess_game/Control/Control';
 import TakeBack from '../components/chess_game/Control/bits/TakeBack';
-import MovesList from '../components/chess_game/Control/bits/MoveList';
 
 export default function GamePage() {
 
@@ -40,7 +39,6 @@ export default function GamePage() {
     		<div className='App'>
     	  		<Board/>
                 <Control>
-                    <MovesList/>
                     <TakeBack/>
                 </Control>
     		</div>

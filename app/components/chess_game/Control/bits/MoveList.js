@@ -1,4 +1,4 @@
-import { useAppContext }from '../../contexts/Context'
+import { useAppContext } from '@/app/contexts/Context'
 import './MovesList.css'
 
 const MovesList = () => {
