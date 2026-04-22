@@ -1,5 +1,5 @@
-import { useAppContext } from "@/app/contexts/Context";
 import arbiter from '../arbiter/arbiter';
+import { useAppContext } from "@/app/contexts/Context";
 import { generateCandidateMoves } from "../reducer/actions/move";
 
 const Piece = ({
@@ -8,41 +8,42 @@ const Piece = ({
     piece,
 }) => {
 
-	const { appState, dispatch } = useAppContext()
-	const { turn, castleDirection, position : currentPosition } = appState;
+    const { appState, dispatch } = useAppContext();
+    const { turn, castleDirection, position : currentPosition } = appState
 
-	const onDragStart = e => {
-		e.dataTransfer.effectAllowed = "move";
-		e.dataTransfer.setData("text/plain",`${piece},${rank},${file}`)
-		setTimeout(() => {
+    const onDragStart = e => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain",`${piece},${rank},${file}`)
+        setTimeout(() => {
             e.target.style.display = 'none'
         },0)
-		if (turn === piece[0]) {
-			const candidateMoves = 
-				arbiter.getValidMoves({
-					position : currentPosition[currentPosition.length - 1],
-					prevPosition : currentPosition[currentPosition.length - 2],
-					castleDirection : castleDirection[turn],
-					piece, 
-					rank, 
-					file
-				})
-			dispatch(generateCandidateMoves({candidateMoves}))
-		}
-	}
 
-	const onDragEnd = e => {
-       e.target.style.display = 'block'
+        if (turn === piece[0]){
+            const candidateMoves = 
+                arbiter.getValidMoves({
+                    position : currentPosition[currentPosition.length - 1],
+                    prevPosition : currentPosition[currentPosition.length - 2],
+                    castleDirection : castleDirection[turn],
+                    piece,
+                    file,
+                    rank
+                })
+            dispatch(generateCandidates({candidateMoves}))
+        }
+
     }
+    const onDragEnd = e => {
+       e.target.style.display = 'block'
+     }
+ 
+    return (
+        <div 
+            className={`piece ${piece} pos-${file}${rank}`}
+            draggable={true}   
+            onDragStart={onDragStart} 
+            onDragEnd={onDragEnd}
 
-	return (
-		<div 
-			className={`piece ${piece} pos-${file}${rank}`}
-			draggable={true}
-			onDragStart={onDragStart}
-			onDragEnd={onDragEnd}
-		/>
-	)
+        />)
 }
 
 export default Piece
