@@ -1,24 +1,26 @@
 import React from 'react';
 import { Status } from '../constants'
 import { useAppContext } from '@/app/contexts/Context'
+import { closePopup } from '../reducer/actions/popup';
 import PromotionBox from './PromotionBox/PromotionBox'
 import './Popup.css'
-import { closePopup } from '../reducer/actions/popup';
 
-const Popup = () => {
+const Popup = ({children}) => {
 
-	const {appState, dispatch} = useAppContext()
+    const { appState : {status}, dispatch } = useAppContext();
 
-	if (appState.status === Status.ongoing)
-		return null
+    const onClosePopup = () => {
+        dispatch(closePopup())
+    }
 
-	const onClosePopup = () => {
-		dispatch(closePopup())
-	}
+    if (status === Status.ongoing)
+        return null
 
-	return <div className='popup'>
-		<PromotionBox onClosePopup={onClosePopup}/>
-	</div>
+    return <div className="popup">
+        {React.Children
+            .toArray(children)
+            .map (child => React.cloneElement(child, { onClosePopup }))}
+    </div>
 }
 
 export default Popup
