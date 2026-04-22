@@ -1,4 +1,4 @@
-import { getBishopMoves, getKingMoves, getKnightMoves, getPawnCaptures, getPawnMoves, getQueenMoves, getRookMoves, getCastlingMoves, getKingPosition, getPieces } from './getMoves'
+import { getKnightMoves, getRookMoves, getBishopMoves, getQueenMoves, getKingMoves, getPawnMoves, getPawnCaptures, getCastlingMoves, getPieces, getKingPosition } from './getMoves'
 import { movePawn, movePiece } from './move';
 
 const arbiter = {
@@ -37,19 +37,13 @@ const arbiter = {
 		}
 
 		moves.forEach(([x, y]) => {
-			const positionAfterMove = this.performMove({position, piece, rank, file, x, y})
+			const positionAfterMove = 
+				this.performMove({position, piece, rank, file, x, y})
 
-			if (!this.isPlayerInCheck({positionAfterMove, position, player:piece[0]}))
+			if (!this.isPlayerInCheck({positionAfterMove, position, player : piece[0]}))
 				notInCheckMoves.push([x,y])
 		})
 		return notInCheckMoves
-	},
-
-	performMove : function({position, piece, rank, file, x, y}) {
-		if (piece.endsWith('p'))
-			return movePawn({position, piece, rank, file, x, y})
-		else
-			return movePiece({position, piece, rank, file, x, y})
 	},
 
 	isPlayerInCheck	: function ({positionAfterMove, position, player}) {
@@ -59,22 +53,31 @@ const arbiter = {
 
 		const enemyMoves = enemyPieces.reduce((acc, p) => acc = [
 			...acc,
-			...(p.piece.endsWith('p'))
+			...(p.piece.endsWith('p')
 			?	getPawnCaptures({
-				position : positionAfterMove,
-				prevPosition : position,
-				...p
-			})
+					position : positionAfterMove,
+					prevPosition : position,
+					...p
+				})
 			:	this.getRegularMoves({
-				position : positionAfterMove,
-				...p
-			})
+					position : positionAfterMove,
+					...p
+				})
+			)
 		], [])
 
 		if (enemyMoves.some(([x,y]) => kingPos[0] === x && kingPos[1] === y))
 			return true
-		return false
-	}
+		else
+			return false
+	},
+
+	performMove : function({position, piece, rank, file, x, y}) {
+		if (piece.endsWith('p'))
+			return movePawn({position, piece, rank, file, x, y})
+		else
+			return movePiece({position, piece, rank, file, x, y})
+	},
 }
 
 export default arbiter
