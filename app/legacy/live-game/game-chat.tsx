@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useRef, useState } from "react";
-import { GameMessage } from "../game/useChessSocket";
+import { GameMessage } from "./useChessSocket";
 
 interface GameChatProps {
   messages: GameMessage[];
