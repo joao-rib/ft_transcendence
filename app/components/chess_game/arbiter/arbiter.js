@@ -78,6 +78,78 @@ const arbiter = {
 		else
 			return movePiece({position, piece, rank, file, x, y})
 	},
+
+	isStalemate : function(position,player,castleDirection) {
+        const isInCheck = this.isPlayerInCheck({positionAfterMove: position, player})
+
+        if (isInCheck)
+            return false
+            
+        const pieces = getPieces(position,player)
+        const moves = pieces.reduce((acc,p) => acc = [
+            ...acc,
+            ...(this.getValidMoves({
+                    position, 
+                    castleDirection, 
+                    ...p
+                })
+            )
+        ], [])
+
+        return (!isInCheck && moves.length === 0)
+    },
+
+    insufficientMaterial : function(position) {
+
+        const pieces = 
+            position.reduce((acc,rank) => 
+                acc = [
+                    ...acc,
+                    ...rank.filter(spot => spot)
+                ],[])
+
+        // King vs. king
+        if (pieces.length === 2)
+            return true
+
+        // King and bishop vs. king
+        // King and knight vs. king
+        if (pieces.length === 3 && pieces.some(p => p.endsWith('b') || p.endsWith('n')))
+            return true
+
+        // King and bishop vs. king and bishop of the same color as the opponent's bishop
+        if (pieces.length === 4 && 
+            pieces.every(p => p.endsWith('b') || p.endsWith('k')) &&
+            new Set(pieces).size === 4 &&
+            areSameColorTiles(
+                findPieceCoords(position,'wb')[0],
+                findPieceCoords(position,'bb')[0]
+            )
+        )
+            return true
+
+        return false
+    },
+
+    isCheckMate : function(position,player,castleDirection) {
+        const isInCheck = this.isPlayerInCheck({positionAfterMove: position, player})
+
+        if (!isInCheck)
+            return false
+            
+        const pieces = getPieces(position,player)
+        const moves = pieces.reduce((acc,p) => acc = [
+            ...acc,
+            ...(this.getValidMoves({
+                    position, 
+                    castleDirection, 
+                    ...p
+                })
+            )
+        ], [])
+
+        return (isInCheck && moves.length === 0)
+    },
 }
 
 export default arbiter
