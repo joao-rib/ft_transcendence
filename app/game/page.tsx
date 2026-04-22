@@ -17,25 +17,32 @@ export default async function GamePage({ searchParams }: GamePageProps) {
 
 'use client'
 
-import { useReducer } from 'react'
 import Board from "@/app/components/chess_game/Board";
+import { reducer } from '../components/chess_game/reducer/reducer'
+import { useReducer } from 'react'
 import { initGameState } from "../components/chess_game/constants"
 import AppContext from '../contexts/Context'
-import { reducer } from "../components/chess_game/reducer/reducer";
+import Control from '../components/chess_game/Control/Control';
+import TakeBack from '../components/chess_game/Control/bits/TakeBack';
+import MovesList from '../components/chess_game/Control/bits/MoveList';
 
 export default function GamePage() {
 
-	const [appState, dispatch] = useReducer(reducer, initGameState)
+	const [appState, dispatch ] = useReducer(reducer,initGameState);
 
-	const providerState = {
-		appState,
-		dispatch,
-	}
+    const providerState = {
+        appState,
+        dispatch
+    }
 
   	return (
 		<AppContext.Provider value={ providerState } >
     		<div className='App'>
     	  		<Board/>
+                <Control>
+                    <MovesList/>
+                    <TakeBack/>
+                </Control>
     		</div>
 		</AppContext.Provider>
   	);

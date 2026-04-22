@@ -1,20 +1,24 @@
 import { createPosition } from "./helper";
 
 export const Status = {
-	'ongoing' : 'Ongoing',
-	'promoting' : 'Promotion',
-	'white' : 'white wins',
-	'black' : 'Black wins'
-} 
+    'ongoing' : 'Ongoing',
+    'promoting' : 'Promoting',
+    'white' : 'White wins',
+    'black' : 'Black wins',
+    'stalemate' : 'Game draws due to stalemate',
+    'insufficient' : 'Game draws due to insufficient material',
+}
 
 export const initGameState = {
-	position : [createPosition()],
-	turn :'w',
-	candidateMoves : [],
-	promotionSquare : null,
-	status : Status.ongoing,
-	castleDirection : {
-		w : 'both',
-		b : 'both',
-	}
+    position : [createPosition()],
+    turn : 'w',
+    candidateMoves : [],
+    movesList : [],
+
+    promotionSquare : null,
+    status : Status.ongoing,
+    castleDirection : {
+        w : 'both',
+        b : 'both'
+    }, 
 }
