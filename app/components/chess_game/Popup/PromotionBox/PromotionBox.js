@@ -1,5 +1,5 @@
 import { useAppContext } from '@/app/contexts/Context'
-import { copyPosition } from '../../helper'
+import { copyPosition, getNewMoveNotation } from '../../helper'
 import { clearCandidates, makeNewMove } from '../../reducer/actions/move'
 import './PromotionBox.css'
 
@@ -15,16 +15,17 @@ const PromotionBox = ({ onClosePopup }) => {
   const getPromotionBoxPosition = () => {
     let style = {};
 
+    // Keep the popup fully inside the board so it is never clipped.
     if (promotionSquare.x === 7) {
-      style.top = "-12.5%";
+      style.top = '0%';
     } else {
-      style.top = "97.5%";
+      style.top = '87.5%';
     }
 
     if (promotionSquare.y <= 1) {
-      style.left = "0%";
+      style.left = '0%';
     } else if (promotionSquare.y >= 5) {
-      style.right = "0%";
+      style.right = '0%';
     } else {
       style.left = `${12.5 * promotionSquare.y - 20}%`;
     }
@@ -38,14 +39,14 @@ const PromotionBox = ({ onClosePopup }) => {
       appState.position[appState.position.length - 1]
     );
 
-    newPosition[promotionSquare.rank][promotionSquare.file] = "";
+    newPosition[promotionSquare.rank][promotionSquare.file] = '';
     newPosition[promotionSquare.x][promotionSquare.y] = color + option;
 
     const newMove = getNewMoveNotation({
       ...promotionSquare,
       position: appState.position[appState.position.length - 1],
       promotesTo: option,
-      piece: promotionSquare.x === 7 ? "wp" : "bp",
+      piece: promotionSquare.x === 7 ? 'wp' : 'bp',
     });
     dispatch(clearCandidates());
 
@@ -54,7 +55,7 @@ const PromotionBox = ({ onClosePopup }) => {
 
   return (
     <div
-      className="popup--inner promotion-choices"
+      className='popup--inner promotion-choices'
       style={getPromotionBoxPosition()}
     >
       {options.map((option) => (
