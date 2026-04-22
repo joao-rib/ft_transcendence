@@ -1,6 +1,6 @@
 'use client'
 
-import { useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
 import Board from '@/app/components/chess_game/Board'
 import CompactChat from '@/app/components/compact-chat'
 import { initGameState } from '../components/chess_game/constants'
@@ -9,10 +9,15 @@ import TakeBack from '../components/chess_game/Control/bits/TakeBack'
 import Resign from '../components/chess_game/Control/bits/Resign'
 import { reducer } from '../components/chess_game/reducer/reducer'
 import AppContext from '../contexts/Context'
+import { applyBoardTheme, getStoredBoardTheme } from '../frontend/game/utils/boardTheme'
 import { useCrossTabGameSync } from './useCrossTabGameSync'
 
 export default function GamePage() {
   const [appState, dispatch] = useReducer(reducer, initGameState)
+
+  useEffect(() => {
+    applyBoardTheme(getStoredBoardTheme())
+  }, [])
 
   useCrossTabGameSync(appState, dispatch)
 
