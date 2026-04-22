@@ -2,7 +2,6 @@ import http from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 import { registerRealtimeChat } from "./socket-handlers/chat.mjs";
-import { registerChessNamespace } from "./socket-handlers/chess.mjs";
 
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const dev = process.env.NODE_ENV !== "production";
@@ -22,8 +21,8 @@ app
         credentials: true,
       },
     });
+
     registerRealtimeChat(io);
-    registerChessNamespace(io);
 
     // Closes socket and HTTP servers gracefully during process termination.
     const gracefulShutdown = () => {
