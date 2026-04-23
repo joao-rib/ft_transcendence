@@ -36,9 +36,6 @@ borderColor: "var(--border-primary)",
 }}
 >
 <nav className="space-y-2">
-<a href="#new-game" className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]">
-New Game
-</a>
 <a
 href="https://www.chess.com/learn-how-to-play-chess"
 target="_blank"
@@ -46,9 +43,6 @@ rel="noopener noreferrer"
 className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]"
 >
 Rules
-</a>
-<a href="#leaderboard" className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]">
-Leaderboard
 </a>
 <button
 type="button"
