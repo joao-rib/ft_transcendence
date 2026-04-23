@@ -27,9 +27,6 @@ export default function LegalPageTemplate({
       <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-8 py-20">
         <div className="w-full max-w-4xl mx-auto space-y-8">
           <header className="text-center space-y-3">
-            <p className="text-sm" style={{ color: "var(--text-accent)" }}>
-              Legal
-            </p>
             <h1
               className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text"
               style={{

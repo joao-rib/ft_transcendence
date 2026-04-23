@@ -59,7 +59,7 @@ export default function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) 
 						<div className="border-t my-2" style={{ borderColor: "var(--border-secondary)" }}></div>
 						<a href="#about" className="block px-4 py-3 rounded-lg transition-colors text-[var(--text-primary)] hover:bg-[var(--btn-primary-bg)]">
 							About
-						</a>
+						</a> {/*//TODO: Fazer isto ir para o github quando estiver publico */}
 						<div className="border-t my-2 pt-3" style={{ borderColor: "var(--border-secondary)" }}>
 							<div className="px-1">
 								<ThemeSwitcher direction="column" />
