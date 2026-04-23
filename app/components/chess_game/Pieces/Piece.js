@@ -10,8 +10,9 @@ const Piece = ({
 
     const { appState, dispatch, onlineGame } = useAppContext();
     const { turn, castleDirection, position: currentPosition } = appState
-    const isOnlineGame = Boolean(onlineGame?.gameId)
-    const isOwnPiece = !isOnlineGame || piece[0] === onlineGame.playerColor
+    const isOnlineGame = Boolean(onlineGame?.isOnlineGame)
+    const playerColor = onlineGame?.playerColor ?? null
+    const isOwnPiece = !isOnlineGame || piece[0] === playerColor
     const isDraggable = isOwnPiece && turn === piece[0]
 
     const onDragStart = e => {

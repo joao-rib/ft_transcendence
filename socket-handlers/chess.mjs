@@ -9,7 +9,7 @@ const chessGames = new Map();
 const waitingPlayers = [];
 
 const createInitialBoardState = () => ({
-  position: [["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"], ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"], ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"]],
+  position: [[["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"], ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"], ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"]],
   turn: "w",
   candidateMoves: [],
   movesList: [],
@@ -37,6 +37,11 @@ const serializeGame = (game) => ({
   boardState: game.boardState,
 });
 
+const serializeGameForPlayer = (game, playerColor) => ({
+  ...serializeGame(game),
+  playerColor,
+});
+
 const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
   const game = {
     gameId,
@@ -56,6 +61,22 @@ const removeWaitingPlayer = (socketId) => {
   if (waitingPlayerIndex >= 0) {
     waitingPlayers.splice(waitingPlayerIndex, 1);
   }
+};
+
+const resolvePlayerFromGame = (game, playerId, playerToken) => {
+  if (!game || !playerId || !playerToken) {
+    return null;
+  }
+
+  if (game.whitePlayer.id === playerId && game.whitePlayer.token === playerToken) {
+    return { color: "w", player: game.whitePlayer };
+  }
+
+  if (game.blackPlayer.id === playerId && game.blackPlayer.token === playerToken) {
+    return { color: "b", player: game.blackPlayer };
+  }
+
+  return null;
 };
 
 export function registerMatchmakingNamespace(io) {
@@ -92,32 +113,37 @@ export function registerMatchmakingNamespace(io) {
       }
 
       const gameId = crypto.randomUUID();
+      const whiteToken = crypto.randomUUID();
+      const blackToken = crypto.randomUUID();
+
       createGame({
         gameId,
         whitePlayer: {
           id: waitingOpponent.socketId,
           name: waitingOpponent.username,
+          token: whiteToken,
         },
         blackPlayer: {
           id: socket.id,
           name: username,
+          token: blackToken,
         },
       });
 
       opponentSocket.emit("match-found", {
         gameId,
         playerId: waitingOpponent.socketId,
+        playerToken: whiteToken,
         username: waitingOpponent.username,
         opponent: username,
-        color: "w",
       });
 
       socket.emit("match-found", {
         gameId,
         playerId: socket.id,
+        playerToken: blackToken,
         username,
         opponent: waitingOpponent.username,
-        color: "b",
       });
     });
 
@@ -138,23 +164,28 @@ export function registerChessNamespace(io) {
 
   chessNamespace.on("connection", (socket) => {
     const gameId = typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "";
-    const playerId = typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : socket.id;
+    const playerId = typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "";
+    const playerToken = typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "";
     const username = sanitizeUsername(socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
 
     socket.data.gameId = gameId;
     socket.data.playerId = playerId;
+    socket.data.playerToken = playerToken;
     socket.data.username = username;
+    socket.data.playerColor = null;
 
     socket.on("join-game", () => {
       const game = chessGames.get(gameId);
+      const resolvedPlayer = resolvePlayerFromGame(game, playerId, playerToken);
 
-      if (!game) {
-        socket.emit("game-error", { error: "Game not found." });
+      if (!game || !resolvedPlayer) {
+        socket.emit("game-error", { error: "Invalid game session." });
         return;
       }
 
+      socket.data.playerColor = resolvedPlayer.color;
       socket.join(gameId);
-      socket.emit("game-state", serializeGame(game));
+      socket.emit("game-state", serializeGameForPlayer(game, resolvedPlayer.color));
       chessNamespace.to(gameId).emit("player-joined", {
         players: [game.whitePlayer.name, game.blackPlayer.name],
       });
@@ -163,14 +194,20 @@ export function registerChessNamespace(io) {
     socket.on("sync-game-state", (payload, acknowledge) => {
       const game = chessGames.get(gameId);
 
-      if (!game) {
-        acknowledge?.({ ok: false, error: "Game not found." });
+      if (!game || !socket.data.playerColor) {
+        acknowledge?.({ ok: false, error: "Invalid game session." });
         return;
       }
 
-      const currentPlayerId = game.boardState.turn === "w" ? game.whitePlayer.id : game.blackPlayer.id;
-      if (currentPlayerId !== playerId) {
+      const currentTurn = game.boardState.turn;
+      if (currentTurn !== socket.data.playerColor) {
         acknowledge?.({ ok: false, error: "Not your turn." });
+        return;
+      }
+
+      const expectedNextTurn = currentTurn === "w" ? "b" : "w";
+      if (payload?.boardState?.turn !== expectedNextTurn) {
+        acknowledge?.({ ok: false, error: "Invalid turn transition." });
         return;
       }
 
@@ -179,20 +216,20 @@ export function registerChessNamespace(io) {
         candidateMoves: [],
       };
 
-      socket.to(gameId).emit("game-state", serializeGame(game));
+      chessNamespace.to(gameId).emit("game-state", serializeGame(game));
       acknowledge?.({ ok: true });
     });
 
     socket.on("resign-game", () => {
       const game = chessGames.get(gameId);
 
-      if (!game) {
+      if (!game || !socket.data.playerColor) {
         return;
       }
 
       game.boardState = {
         ...game.boardState,
-        status: playerId === game.whitePlayer.id ? BLACK_WIN_STATUS : WHITE_WIN_STATUS,
+        status: socket.data.playerColor === "w" ? BLACK_WIN_STATUS : WHITE_WIN_STATUS,
         candidateMoves: [],
       };
 

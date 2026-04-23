@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { syncGameState } from "@/app/components/chess_game/reducer/actions/game";
 
@@ -23,16 +23,18 @@ type UseOnlineGameSyncParams = {
   dispatch: (action: unknown) => void;
   gameId: string | null;
   playerId: string | null;
+  playerToken: string | null;
   username: string | null;
 };
 
-export function useOnlineGameSync({ appState, dispatch, gameId, playerId, username }: UseOnlineGameSyncParams) {
+export function useOnlineGameSync({ appState, dispatch, gameId, playerId, playerToken, username }: UseOnlineGameSyncParams) {
   const socketRef = useRef<Socket | null>(null);
   const hasHydratedFromServerRef = useRef(false);
   const suppressNextSyncRef = useRef(false);
+  const [playerColor, setPlayerColor] = useState<"w" | "b" | null>(null);
 
   useEffect(() => {
-    if (!gameId || !playerId || !username) {
+    if (!gameId || !playerId || !playerToken || !username) {
       return;
     }
 
@@ -42,16 +44,24 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, userna
       reconnectionAttempts: Infinity,
       reconnectionDelay: 500,
       reconnectionDelayMax: 4000,
-      query: { gameId, playerId, username },
+      query: { gameId, playerId, playerToken, username },
     });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      socket.emit("join-game", { gameId, playerId, username });
+      socket.emit("join-game", { gameId, playerId, playerToken, username });
     });
 
     socket.on("game-state", (payload) => {
+      if (payload?.playerColor === "w" || payload?.playerColor === "b") {
+        setPlayerColor(payload.playerColor);
+      }
+
+      if (!payload?.boardState) {
+        return;
+      }
+
       hasHydratedFromServerRef.current = true;
       suppressNextSyncRef.current = true;
       dispatch(syncGameState(payload.boardState));
@@ -62,11 +72,12 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, userna
       socketRef.current = null;
       hasHydratedFromServerRef.current = false;
       suppressNextSyncRef.current = false;
+      setPlayerColor(null);
     };
-  }, [dispatch, gameId, playerId, username]);
+  }, [dispatch, gameId, playerId, playerToken, username]);
 
   useEffect(() => {
-    if (!gameId || !playerId || !username || !socketRef.current?.connected || !hasHydratedFromServerRef.current) {
+    if (!gameId || !playerId || !playerToken || !username || !socketRef.current?.connected || !hasHydratedFromServerRef.current) {
       return;
     }
 
@@ -79,9 +90,10 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, userna
       boardState: appState,
       gameId,
       playerId,
+      playerToken,
       username,
     });
-  }, [appState.movesList.length, appState.status, appState.turn, gameId, playerId, username]);
+  }, [appState.movesList.length, appState.status, appState.turn, gameId, playerId, playerToken, username]);
 
   const resignGame = () => {
     if (!socketRef.current?.connected) {
@@ -91,11 +103,13 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, userna
     socketRef.current.emit("resign-game", {
       gameId,
       playerId,
+      playerToken,
     });
   };
 
   return {
-    isOnlineGame: Boolean(gameId && playerId && username),
+    isOnlineGame: Boolean(gameId && playerId && playerToken && username),
+    playerColor,
     resignGame,
   };
 }

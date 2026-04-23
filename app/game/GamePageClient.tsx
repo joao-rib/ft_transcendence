@@ -18,8 +18,8 @@ export default function GamePageClient() {
   const searchParams = useSearchParams()
   const gameId = searchParams.get('gameId')
   const playerId = searchParams.get('playerId')
+  const playerToken = searchParams.get('playerToken')
   const username = searchParams.get('username')
-  const playerColor = searchParams.get('color') === 'b' ? 'b' : 'w'
   const [appState, dispatch] = useReducer(reducer, initGameState)
 
   useEffect(() => {
@@ -31,6 +31,7 @@ export default function GamePageClient() {
     dispatch,
     gameId,
     playerId,
+    playerToken,
     username,
   })
 
@@ -42,7 +43,8 @@ export default function GamePageClient() {
     onlineGame: {
       ...onlineGame,
       gameId,
-      playerColor,
+      playerId,
+      playerToken,
       username,
     },
   }

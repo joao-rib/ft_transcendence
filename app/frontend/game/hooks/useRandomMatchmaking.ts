@@ -7,9 +7,9 @@ import { io, type Socket } from "socket.io-client";
 const MATCHMAKING_NAMESPACE = "/matchmaking";
 
 type MatchFoundPayload = {
-  color: "w" | "b";
   gameId: string;
   playerId: string;
+  playerToken: string;
   username: string;
 };
 
@@ -65,11 +65,13 @@ export function useRandomMatchmaking() {
       setMatchStatus("Waiting for another player...");
     });
 
-    socket.on("match-found", ({ color, gameId, playerId, username }: MatchFoundPayload) => {
+    socket.on("match-found", ({ gameId, playerId, playerToken, username }: MatchFoundPayload) => {
       disconnectSocket();
       setIsSearching(false);
       setMatchStatus("");
-      router.push(`/game?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}&username=${encodeURIComponent(username)}&color=${color}`);
+      router.push(
+        `/game?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}&playerToken=${encodeURIComponent(playerToken)}&username=${encodeURIComponent(username)}`,
+      );
     });
 
     socket.on("disconnect", () => {
