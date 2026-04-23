@@ -31,7 +31,7 @@ const formatTime = (isoDate: string) =>
     second: "2-digit",
   });
 
-// Creates a local system-style message for join/leave/name-change notifications.
+// Creates a local system-style message for join, leave, and name-change notifications.
 const toSystemMessage = (text: string): ChatMessage => ({
   id: `system-${crypto.randomUUID()}`,
   username: "system",

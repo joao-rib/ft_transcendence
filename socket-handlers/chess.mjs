@@ -221,6 +221,7 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("resign-game", () => {
+      // Mark the game as finished and announce the winner when a player resigns.
       const game = chessGames.get(gameId);
 
       if (!game || !socket.data.playerColor) {

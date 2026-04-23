@@ -7,6 +7,14 @@ import GamePlayerSidebar from "../../frontend/game/components/GamePlayerSidebar"
 import GameSettingsPanel from "../../frontend/game/components/GameSettingsPanel";
 import { useGameController } from "../../frontend/game/hooks/useGameController";
 
+/**
+ * Lobby page.
+ *
+ * This page:
+ * 1. Gets state and handlers from useGameController.
+ * 2. Passes player data into GamePlayerSidebar.
+ * 3. Keeps profile and action sections separated in the layout.
+ */
 export default function GamePage() {
   const {
     boardTheme,

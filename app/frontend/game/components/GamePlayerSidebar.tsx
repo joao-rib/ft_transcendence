@@ -1,6 +1,10 @@
 interface GamePlayerSidebarProps {
 	playerName: string;
-	rank: string;
+	// Account.avatarUrl from the database. It can be null.
+	avatarUrl?: string | null;
+	// Current rank value mapped from Score.gamesPlayed.
+	// TODO: revisit this if rank becomes a real rating instead of a count.
+	rank: number;
 	wins: number;
 	losses: number;
 	onFriends: () => void;
@@ -10,6 +14,7 @@ interface GamePlayerSidebarProps {
 
 export default function GamePlayerSidebar({
 	playerName,
+	avatarUrl,
 	rank,
 	wins,
 	losses,
@@ -17,6 +22,14 @@ export default function GamePlayerSidebar({
 	onSettings,
 	onDisconnect,
 }: GamePlayerSidebarProps) {
+	/**
+	 * Lobby player sidebar.
+	 *
+	 * This component:
+	 * 1. Shows the authenticated player's avatar and username.
+	 * 2. Displays Score-based stats (rank, wins, losses).
+	 * 3. Keeps the previous visual fallback when no avatar URL exists.
+	 */
 	return (
 		<aside className="w-96 flex-shrink-0 p-6" style={{ borderRight: `1px solid var(--border-secondary)` }}>
 			<div
@@ -27,15 +40,27 @@ export default function GamePlayerSidebar({
 				}}
 			>
 				<div className="text-center space-y-3">
-					<div
-						className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-bold text-slate-900 border-4"
-						style={{
-							background: `linear-gradient(to bottom right, var(--avatar-start), var(--avatar-mid), var(--avatar-end))`,
-							borderColor: "var(--avatar-border)",
-						}}
-					>
-						{playerName.charAt(0).toUpperCase()}
-					</div>
+					{/* Render the DB avatar when available; otherwise fall back to the default initial badge. */}
+					{avatarUrl ? (
+						<img
+							src={avatarUrl}
+							alt={`${playerName} avatar`}
+							className="w-24 h-24 mx-auto rounded-full object-cover border-4"
+							style={{
+								borderColor: "var(--avatar-border)",
+							}}
+						/>
+					) : (
+						<div
+							className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-bold text-slate-900 border-4"
+							style={{
+								background: `linear-gradient(to bottom right, var(--avatar-start), var(--avatar-mid), var(--avatar-end))`,
+								borderColor: "var(--avatar-border)",
+							}}
+						>
+							{playerName.charAt(0).toUpperCase()}
+						</div>
+					)}
 					<h2
 						className="text-2xl font-bold text-transparent bg-clip-text"
 						style={{
