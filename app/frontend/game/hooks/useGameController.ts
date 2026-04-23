@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useBoardThemeSettings } from "./useBoardThemeSettings";
+import { useRandomMatchmaking } from "./useRandomMatchmaking";
 
 export function useGameController() {
   // Safe defaults prevent the UI from breaking before the fetch resolves.
@@ -11,6 +13,21 @@ export function useGameController() {
     losses: 0,
     rank: 0,
   });
+
+const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [friends] = useState([
+    { id: "1", name: "Ana", status: "online" as const },
+    { id: "2", name: "Rui", status: "offline" as const },
+    { id: "3", name: "Marta", status: "online" as const },
+  ]);
+  const {
+    boardTheme,
+    closeSettings,
+    handleBoardThemeChange,
+    isSettingsOpen,
+    toggleSettings,
+  } = useBoardThemeSettings();
+  const { isSearching, matchStatus, startMatchmaking } = useRandomMatchmaking();
 
   useEffect(() => {
     const loadLobbyPlayerData = async () => {
@@ -57,17 +74,35 @@ export function useGameController() {
     console.log("Opening rankings...");
   };
 
+
   const handleStartGame = () => {
-    console.log("Starting game...");
+    startMatchmaking(playerName);
+  };
+
+  const handleFriends = () => {
+    setIsFriendsOpen((currentValue) => !currentValue);
+  };
+
+  const closeFriends = () => {
+    setIsFriendsOpen(false);
   };
 
   return {
-    playerName,
-    avatarUrl,
-    playerStats,
+    boardTheme,
+    closeFriends,
+    closeSettings,
+    friends,
+    handleBoardThemeChange,
     handleDisconnect,
-    handleSettings,
+    handleFriends,
     handleRankings,
     handleStartGame,
+    handleSettings: toggleSettings,
+    isFriendsOpen,
+    isSearching,
+    isSettingsOpen,
+    matchStatus,
+    playerName,
+    playerStats,
   };
 }
