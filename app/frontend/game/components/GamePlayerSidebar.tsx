@@ -3,6 +3,7 @@ interface GamePlayerSidebarProps {
 	rank: string;
 	wins: number;
 	losses: number;
+	onFriends: () => void;
 	onSettings: () => void;
 	onDisconnect: () => void;
 }
@@ -12,6 +13,7 @@ export default function GamePlayerSidebar({
 	rank,
 	wins,
 	losses,
+	onFriends,
 	onSettings,
 	onDisconnect,
 }: GamePlayerSidebarProps) {
@@ -24,7 +26,6 @@ export default function GamePlayerSidebar({
 					border: `1px solid var(--border-primary)`,
 				}}
 			>
-				{/* Player Avatar & Name */}
 				<div className="text-center space-y-3">
 					<div
 						className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-bold text-slate-900 border-4"
@@ -45,7 +46,6 @@ export default function GamePlayerSidebar({
 					</h2>
 				</div>
 
-				{/* Player Stats */}
 				<div className="space-y-3 flex-grow">
 					<div
 						className="rounded-xl p-4"
@@ -85,8 +85,26 @@ export default function GamePlayerSidebar({
 					</div>
 				</div>
 
-				{/* Action Buttons */}
 				<div className="space-y-3 pt-4" style={{ borderTop: `1px solid var(--border-secondary)` }}>
+					<button
+						onClick={onFriends}
+						className="w-full px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02]"
+						style={{
+							backgroundColor: "var(--overlay-light)",
+							border: `1px solid var(--border-primary)`,
+							color: "var(--text-primary)",
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.backgroundColor = "var(--overlay-medium)";
+							e.currentTarget.style.borderColor = "var(--border-hover)";
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.backgroundColor = "var(--overlay-light)";
+							e.currentTarget.style.borderColor = "var(--border-primary)";
+						}}
+					>
+						👥 Friends
+					</button>
 					<button
 						onClick={onSettings}
 						className="w-full px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02]"
