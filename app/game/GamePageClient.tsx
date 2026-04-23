@@ -37,6 +37,9 @@ export default function GamePageClient() {
 
   useCrossTabGameSync(appState, dispatch, !onlineGame.isOnlineGame)
 
+  // Don't render the game until online games have received playerColor from server
+  const isReadyToRender = !onlineGame.isOnlineGame || (onlineGame.isOnlineGame && onlineGame.playerColor !== null)
+
   const providerState = {
     appState,
     dispatch,
@@ -52,14 +55,22 @@ export default function GamePageClient() {
   return (
     <AppContext.Provider value={providerState}>
       <div className='App'>
-        <Board />
-        <Control>
-          {!onlineGame.isOnlineGame ? <TakeBack /> : null}
-          <Resign />
-          <div style={{ marginTop: '12px', minWidth: '260px' }}>
-            <CompactChat maxHeight='max-h-80' />
+        {isReadyToRender ? (
+          <>
+            <Board />
+            <Control>
+              {!onlineGame.isOnlineGame ? <TakeBack /> : null}
+              <Resign />
+              <div style={{ marginTop: '12px', minWidth: '260px' }}>
+                <CompactChat maxHeight='max-h-80' />
+              </div>
+            </Control>
+          </>
+        ) : (
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            Connecting to game...
           </div>
-        </Control>
+        )}
       </div>
     </AppContext.Provider>
   )

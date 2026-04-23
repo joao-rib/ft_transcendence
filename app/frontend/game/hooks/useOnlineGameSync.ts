@@ -30,7 +30,7 @@ type UseOnlineGameSyncParams = {
 export function useOnlineGameSync({ appState, dispatch, gameId, playerId, playerToken, username }: UseOnlineGameSyncParams) {
   const socketRef = useRef<Socket | null>(null);
   const hasHydratedFromServerRef = useRef(false);
-  const suppressNextSyncRef = useRef(false);
+  const lastSyncedMovesCountRef = useRef(0);
   const [playerColor, setPlayerColor] = useState<"w" | "b" | null>(null);
 
   useEffect(() => {
@@ -62,8 +62,12 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
         return;
       }
 
+      // Track how many moves the server has so we don't echo them back
+      if (Array.isArray(payload.boardState.movesList)) {
+        lastSyncedMovesCountRef.current = payload.boardState.movesList.length;
+      }
+
       hasHydratedFromServerRef.current = true;
-      suppressNextSyncRef.current = true;
       dispatch(syncGameState(payload.boardState));
     });
 
@@ -71,7 +75,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       socket.disconnect();
       socketRef.current = null;
       hasHydratedFromServerRef.current = false;
-      suppressNextSyncRef.current = false;
+      lastSyncedMovesCountRef.current = 0;
       setPlayerColor(null);
     };
   }, [dispatch, gameId, playerId, playerToken, username]);
@@ -81,10 +85,12 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       return;
     }
 
-    if (suppressNextSyncRef.current) {
-      suppressNextSyncRef.current = false;
+    // Only emit when we have a NEW local move beyond what was last synced from server
+    if (appState.movesList.length <= lastSyncedMovesCountRef.current) {
       return;
     }
+
+    lastSyncedMovesCountRef.current = appState.movesList.length;
 
     socketRef.current.emit("sync-game-state", {
       boardState: appState,
