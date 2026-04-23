@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useReducer, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useReducer } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Board from '@/app/components/chess_game/Board'
 import CompactChat from '@/app/components/compact-chat'
-import { initGameState, Status } from '../components/chess_game/constants'
+import { initGameState } from '../components/chess_game/constants'
 import Control from '../components/chess_game/Control/Control'
 import TakeBack from '../components/chess_game/Control/bits/TakeBack'
 import Resign from '../components/chess_game/Control/bits/Resign'
@@ -15,8 +15,6 @@ import { applyBoardTheme, getStoredBoardTheme } from '../frontend/game/utils/boa
 import { useCrossTabGameSync } from './useCrossTabGameSync'
 
 export default function GamePageClient() {
-  const router = useRouter()
-  const hasRedirectedToLobbyRef = useRef(false)
   const searchParams = useSearchParams()
   const gameId = searchParams.get('gameId')
   const playerId = searchParams.get('playerId')
@@ -38,17 +36,6 @@ export default function GamePageClient() {
   })
 
   useCrossTabGameSync(appState, dispatch, !onlineGame.isOnlineGame)
-
-  useEffect(() => {
-    const isGameOver = appState.status !== Status.ongoing && appState.status !== Status.promoting
-
-    if (!onlineGame.isOnlineGame || !isGameOver || hasRedirectedToLobbyRef.current) {
-      return
-    }
-
-    hasRedirectedToLobbyRef.current = true
-    router.replace('/game/lobby')
-  }, [appState.status, onlineGame.isOnlineGame, router])
 
   // Don't render the game until online games have received playerColor from server
   const isReadyToRender = !onlineGame.isOnlineGame || (onlineGame.isOnlineGame && onlineGame.playerColor !== null)

@@ -20,13 +20,20 @@
     transform: translate(-50%, -50%);
     text-align: center;
     padding: 1em 0;
+    color: #000;
 }
 
 .popup--inner__center h1 {
     font-size: 2.5em;
     margin: 0 0 .5em 0;
+    color: #000;
 }
 .popup--inner__center p {
     font-size: 1.2em;
     margin: 0 0 1em 0;
+    color: #000;
+}
+
+.popup--inner__center button {
+    color: #000;
 }
