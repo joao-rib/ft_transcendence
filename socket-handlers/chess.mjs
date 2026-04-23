@@ -1,161 +1,239 @@
 import crypto from "node:crypto";
-import { trimText } from "./utils.mjs";
 
-const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const CHESS_NAMESPACE = "/chess";
+const MATCHMAKING_NAMESPACE = "/matchmaking";
+const WHITE_WIN_STATUS = "White wins";
+const BLACK_WIN_STATUS = "Black wins";
 
-export function registerChessNamespace(io) {
-  const chessGames = new Map();
-  const chessNamespace = io.of("/chess");
+const chessGames = new Map();
+const waitingPlayers = [];
 
-  const initializeGame = (gameId, player1, player2) => {
-    const game = {
-      gameId,
-      status: "playing",
-      whitePlayer: player1,
-      blackPlayer: player2,
-      currentTurn: "white",
-      moves: [],
-      fen: INITIAL_FEN,
-      createdAt: new Date(),
-      messages: [],
-    };
+const createInitialBoardState = () => ({
+  position: [[["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"], ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"], ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"]]],
+  turn: "w",
+  candidateMoves: [],
+  movesList: [],
+  promotionSquare: null,
+  status: "Ongoing",
+  castleDirection: {
+    w: "both",
+    b: "both",
+  },
+});
 
-    chessGames.set(gameId, game);
-    return game;
+const sanitizeUsername = (rawUsername, fallbackValue) => {
+  if (typeof rawUsername !== "string") {
+    return fallbackValue;
+  }
+
+  const normalizedUsername = rawUsername.trim().slice(0, 24);
+  return normalizedUsername || fallbackValue;
+};
+
+const serializeGame = (game) => ({
+  gameId: game.gameId,
+  whitePlayer: game.whitePlayer.name,
+  blackPlayer: game.blackPlayer.name,
+  boardState: game.boardState,
+});
+
+const serializeGameForPlayer = (game, playerColor) => ({
+  ...serializeGame(game),
+  playerColor,
+});
+
+const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
+  const game = {
+    gameId,
+    whitePlayer,
+    blackPlayer,
+    boardState: createInitialBoardState(),
+    createdAt: new Date().toISOString(),
   };
 
-  const getOrCreateGame = (gameId, username) => {
-    if (chessGames.has(gameId)) {
-      return chessGames.get(gameId);
-    }
+  chessGames.set(gameId, game);
+  return game;
+};
 
-    return initializeGame(gameId, username, "waiting-opponent");
-  };
+const removeWaitingPlayer = (socketId) => {
+  const waitingPlayerIndex = waitingPlayers.findIndex((entry) => entry.socketId === socketId);
 
-  chessNamespace.on("connection", (socket) => {
-    const gameId = socket.handshake.query.gameId;
-    const username = socket.handshake.query.username || `player-${socket.id.slice(0, 6)}`;
+  if (waitingPlayerIndex >= 0) {
+    waitingPlayers.splice(waitingPlayerIndex, 1);
+  }
+};
 
-    socket.data.username = username;
-    socket.data.gameId = gameId;
+const resolvePlayerFromGame = (game, playerId, playerToken) => {
+  if (!game || !playerId || !playerToken) {
+    return null;
+  }
 
-    socket.on("join-game", () => {
-      const game = getOrCreateGame(gameId, username);
+  if (game.whitePlayer.id === playerId && game.whitePlayer.token === playerToken) {
+    return { color: "w", player: game.whitePlayer };
+  }
 
-      if (game.blackPlayer === "waiting-opponent") {
-        game.blackPlayer = username;
-        game.status = "playing";
+  if (game.blackPlayer.id === playerId && game.blackPlayer.token === playerToken) {
+    return { color: "b", player: game.blackPlayer };
+  }
+
+  return null;
+};
+
+export function registerMatchmakingNamespace(io) {
+  const matchmakingNamespace = io.of(MATCHMAKING_NAMESPACE);
+
+  matchmakingNamespace.on("connection", (socket) => {
+    socket.on("join-queue", (payload) => {
+      removeWaitingPlayer(socket.id);
+
+      const username = sanitizeUsername(payload?.username, `Player-${socket.id.slice(0, 4)}`);
+      socket.data.username = username;
+      socket.data.playerId = socket.id;
+
+      const waitingOpponent = waitingPlayers.shift();
+
+      if (!waitingOpponent) {
+        waitingPlayers.push({
+          socketId: socket.id,
+          username,
+        });
+
+        socket.emit("queue-joined", {
+          username,
+        });
+        return;
       }
 
-      socket.join(gameId);
+      const opponentSocket = matchmakingNamespace.sockets.get(waitingOpponent.socketId);
 
-      chessNamespace.to(gameId).emit("game-state", game);
-      chessNamespace.to(gameId).emit("player-joined", {
+      if (!opponentSocket?.connected) {
+        socket.emit("queue-joined", { username });
+        waitingPlayers.push({ socketId: socket.id, username });
+        return;
+      }
+
+      const gameId = crypto.randomUUID();
+      const whiteToken = crypto.randomUUID();
+      const blackToken = crypto.randomUUID();
+
+      createGame({
+        gameId,
+        whitePlayer: {
+          id: waitingOpponent.socketId,
+          name: waitingOpponent.username,
+          token: whiteToken,
+        },
+        blackPlayer: {
+          id: socket.id,
+          name: username,
+          token: blackToken,
+        },
+      });
+
+      opponentSocket.emit("match-found", {
+        gameId,
+        playerId: waitingOpponent.socketId,
+        playerToken: whiteToken,
+        username: waitingOpponent.username,
+        opponent: username,
+      });
+
+      socket.emit("match-found", {
+        gameId,
+        playerId: socket.id,
+        playerToken: blackToken,
         username,
-        players: [game.whitePlayer, game.blackPlayer].filter((player) => player !== "waiting-opponent"),
+        opponent: waitingOpponent.username,
       });
     });
 
-    socket.on("make-move", (payload, acknowledge) => {
-      const { from, to } = payload;
-      const game = chessGames.get(gameId);
-
-      if (!game) {
-        if (typeof acknowledge === "function") {
-          acknowledge({ ok: false, error: "Game not found" });
-        }
-        return;
-      }
-
-      const isWhiteTurn = game.currentTurn === "white";
-      const isPlayerWhite = game.whitePlayer === username;
-
-      if (isWhiteTurn !== isPlayerWhite) {
-        if (typeof acknowledge === "function") {
-          acknowledge({ ok: false, error: "Not your turn" });
-        }
-        return;
-      }
-
-      const move = {
-        from,
-        to,
-        timestamp: new Date().toISOString(),
-      };
-
-      game.moves.push(move);
-      game.currentTurn = isWhiteTurn ? "black" : "white";
-
-      chessNamespace.to(gameId).emit("move-executed", move);
-
-      if (typeof acknowledge === "function") {
-        acknowledge({ ok: true });
-      }
+    socket.on("cancel-queue", () => {
+      removeWaitingPlayer(socket.id);
     });
 
-    socket.on("game-chat-message", (payload, acknowledge) => {
-      const text = trimText(payload?.text, 200);
+    socket.on("disconnect", () => {
+      removeWaitingPlayer(socket.id);
+    });
+  });
+
+  return matchmakingNamespace;
+}
+
+export function registerChessNamespace(io) {
+  const chessNamespace = io.of(CHESS_NAMESPACE);
+
+  chessNamespace.on("connection", (socket) => {
+    const gameId = typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "";
+    const playerId = typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "";
+    const playerToken = typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "";
+    const username = sanitizeUsername(socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
+
+    socket.data.gameId = gameId;
+    socket.data.playerId = playerId;
+    socket.data.playerToken = playerToken;
+    socket.data.username = username;
+    socket.data.playerColor = null;
+
+    socket.on("join-game", () => {
+      const game = chessGames.get(gameId);
+      const resolvedPlayer = resolvePlayerFromGame(game, playerId, playerToken);
+
+      if (!game || !resolvedPlayer) {
+        socket.emit("game-error", { error: "Invalid game session." });
+        return;
+      }
+
+      socket.data.playerColor = resolvedPlayer.color;
+      socket.join(gameId);
+      socket.emit("game-state", serializeGameForPlayer(game, resolvedPlayer.color));
+      chessNamespace.to(gameId).emit("player-joined", {
+        players: [game.whitePlayer.name, game.blackPlayer.name],
+      });
+    });
+
+    socket.on("sync-game-state", (payload, acknowledge) => {
       const game = chessGames.get(gameId);
 
-      if (!game) {
-        if (typeof acknowledge === "function") {
-          acknowledge({ ok: false, error: "Game not found" });
-        }
+      if (!game || !socket.data.playerColor) {
+        acknowledge?.({ ok: false, error: "Invalid game session." });
         return;
       }
 
-      if (!text) {
-        if (typeof acknowledge === "function") {
-          acknowledge({ ok: false, error: "Empty message" });
-        }
+      const currentTurn = game.boardState.turn;
+      if (currentTurn !== socket.data.playerColor) {
+        acknowledge?.({ ok: false, error: "Not your turn." });
         return;
       }
 
-      const message = {
-        id: crypto.randomUUID(),
-        gameId,
-        username,
-        text,
-        sentAt: new Date().toISOString(),
+      const expectedNextTurn = currentTurn === "w" ? "b" : "w";
+      if (payload?.boardState?.turn !== expectedNextTurn) {
+        acknowledge?.({ ok: false, error: "Invalid turn transition." });
+        return;
+      }
+
+      game.boardState = {
+        ...payload?.boardState,
+        candidateMoves: [],
       };
 
-      game.messages.push(message);
-      chessNamespace.to(gameId).emit("game-chat-message", message);
-
-      if (typeof acknowledge === "function") {
-        acknowledge({ ok: true });
-      }
+      chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+      acknowledge?.({ ok: true });
     });
 
     socket.on("resign-game", () => {
       const game = chessGames.get(gameId);
 
-      if (!game) return;
-
-      const winner = game.whitePlayer === username ? game.blackPlayer : game.whitePlayer;
-      game.status = "finished";
-
-      chessNamespace.to(gameId).emit("game-finished", {
-        winner,
-        reason: `${username} resigned`,
-      });
-    });
-
-    socket.on("disconnect", () => {
-      const game = chessGames.get(gameId);
-      const players = chessNamespace.adapter.rooms.get(gameId)
-        ? Array.from(chessNamespace.adapter.rooms.get(gameId))
-        : [];
-
-      if (game) {
-        chessNamespace.to(gameId).emit("player-left", {
-          username,
-          players: players.map((socketId) => {
-            const sock = chessNamespace.sockets.get(socketId);
-            return sock?.data.username || "unknown";
-          }),
-        });
+      if (!game || !socket.data.playerColor) {
+        return;
       }
+
+      game.boardState = {
+        ...game.boardState,
+        status: socket.data.playerColor === "w" ? BLACK_WIN_STATUS : WHITE_WIN_STATUS,
+        candidateMoves: [],
+      };
+
+      chessNamespace.to(gameId).emit("game-state", serializeGame(game));
     });
   });
 

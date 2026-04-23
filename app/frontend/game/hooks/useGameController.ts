@@ -1,38 +1,67 @@
 "use client";
 
-import type { FormEvent } from "react";
 import { useState } from "react";
+import { useBoardThemeSettings } from "./useBoardThemeSettings";
+import { useRandomMatchmaking } from "./useRandomMatchmaking";
 
 export function useGameController() {
-	const [playerName, setPlayerName] = useState("Player");
-	const [playerStats, setPlayerStats] = useState({
-		wins: 0,
-		losses: 0,
-		rank: "Beginner",
-	});
+  const [playerName] = useState("Player");
+  const [playerStats] = useState({
+    wins: 0,
+    losses: 0,
+    rank: "Beginner",
+  });
+  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [friends] = useState([
+    { id: "1", name: "Ana", status: "online" as const },
+    { id: "2", name: "Rui", status: "offline" as const },
+    { id: "3", name: "Marta", status: "online" as const },
+  ]);
+  const {
+    boardTheme,
+    closeSettings,
+    handleBoardThemeChange,
+    isSettingsOpen,
+    toggleSettings,
+  } = useBoardThemeSettings();
+  const { isSearching, matchStatus, startMatchmaking } = useRandomMatchmaking();
 
-	const handleDisconnect = () => {
-		console.log("Disconnecting...");
-	};
+  const handleDisconnect = () => {
+    console.log("Disconnecting...");
+  };
 
-	const handleSettings = () => {
-		console.log("Opening settings...");
-	};
+  const handleRankings = () => {
+    console.log("Opening rankings...");
+  };
 
-	const handleRankings = () => {
-		console.log("Opening rankings...");
-	};
+  const handleStartGame = () => {
+    startMatchmaking(playerName);
+  };
 
-	const handleStartGame = () => {
-		console.log("Starting game...");
-	};
+  const handleFriends = () => {
+    setIsFriendsOpen((currentValue) => !currentValue);
+  };
 
-	return {
-		playerName,
-		playerStats,
-		handleDisconnect,
-		handleSettings,
-		handleRankings,
-		handleStartGame,
-	};
+  const closeFriends = () => {
+    setIsFriendsOpen(false);
+  };
+
+  return {
+    boardTheme,
+    closeFriends,
+    closeSettings,
+    friends,
+    handleBoardThemeChange,
+    handleDisconnect,
+    handleFriends,
+    handleRankings,
+    handleStartGame,
+    handleSettings: toggleSettings,
+    isFriendsOpen,
+    isSearching,
+    isSettingsOpen,
+    matchStatus,
+    playerName,
+    playerStats,
+  };
 }
