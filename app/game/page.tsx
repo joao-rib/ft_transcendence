@@ -15,6 +15,14 @@ export default async function GamePage({ searchParams }: GamePageProps) {
   );
 } */
 
+/**
+ * Game page with the legacy chess board.
+ *
+ * This page:
+ * 1. Initializes the global game state with useReducer.
+ * 2. Exposes state and dispatch through AppContext.
+ * 3. Renders the Board through that context.
+ */
 'use client'
 
 import { useReducer } from 'react'

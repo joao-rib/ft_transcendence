@@ -3,6 +3,14 @@ import { trimText } from "./utils.mjs";
 
 const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+/**
+ * Registers the chess namespace used by the game lobby and match flow.
+ *
+ * This handler:
+ * 1. Creates or reuses in-memory game sessions.
+ * 2. Synchronizes moves, chat, and resign events.
+ * 3. Broadcasts game state updates to everyone in the room.
+ */
 export function registerChessNamespace(io) {
   const chessGames = new Map();
   const chessNamespace = io.of("/chess");
@@ -33,6 +41,7 @@ export function registerChessNamespace(io) {
   };
 
   chessNamespace.on("connection", (socket) => {
+    // Read the room identity from the handshake so the client can join the correct match.
     const gameId = socket.handshake.query.gameId;
     const username = socket.handshake.query.username || `player-${socket.id.slice(0, 6)}`;
 
@@ -40,6 +49,7 @@ export function registerChessNamespace(io) {
     socket.data.gameId = gameId;
 
     socket.on("join-game", () => {
+      // Create the game if needed and attach the second player when they connect.
       const game = getOrCreateGame(gameId, username);
 
       if (game.blackPlayer === "waiting-opponent") {
@@ -57,6 +67,7 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("make-move", (payload, acknowledge) => {
+      // Validate the move against the current turn before applying it.
       const { from, to } = payload;
       const game = chessGames.get(gameId);
 
@@ -94,6 +105,7 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("game-chat-message", (payload, acknowledge) => {
+      // Validate and broadcast in-game chat messages.
       const text = trimText(payload?.text, 200);
       const game = chessGames.get(gameId);
 
@@ -128,6 +140,7 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("resign-game", () => {
+      // Mark the game as finished and announce the winner when a player resigns.
       const game = chessGames.get(gameId);
 
       if (!game) return;
@@ -142,6 +155,7 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("disconnect", () => {
+      // Inform the room when a player disconnects.
       const game = chessGames.get(gameId);
       const players = chessNamespace.adapter.rooms.get(gameId)
         ? Array.from(chessNamespace.adapter.rooms.get(gameId))

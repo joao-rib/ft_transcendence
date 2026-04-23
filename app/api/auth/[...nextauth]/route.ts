@@ -1,3 +1,11 @@
+/**
+ * NextAuth configuration for credentials login.
+ *
+ * This file:
+ * 1. Validates email/password credentials against the Account table.
+ * 2. Stores JWT session data in HTTP-only cookies.
+ * 3. Exposes custom session fields for the frontend.
+ */
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -8,7 +16,7 @@ import NextAuth from "next-auth";
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
-// Type augmentation to extend Session to include user id
+// Extend the NextAuth session so the frontend can read session.user.id.
 declare module "next-auth" {
 	interface Session {
 		user: {
@@ -41,9 +49,9 @@ const authOptions: NextAuthOptions = {
 	adapter: PrismaAdapter(prisma) as any, // Type assertion for compatibility
 	providers: [
 		CredentialsProvider({
-			// Display name for the provider (shown in sign-in UI)
+			// Provider label shown in the sign-in flow.
 			name: "Credentials",
-			// Fields presented in sign-in form
+			// Credentials requested from the sign-in form.
 			credentials: {
 				email: {
 					label: "Email",
@@ -53,15 +61,19 @@ const authOptions: NextAuthOptions = {
 				password: { label: "Password", type: "password" },
 			},
 			/**
-			 * Authorize function: validates credentials against database
-			 * Called when user submits login form
+			 * Validates credentials against the database.
+			 *
+			 * This function:
+			 * 1. Finds the account by email.
+			 * 2. Compares the password hash.
+			 * 3. Returns the user object expected by NextAuth.
 			 */
 			async authorize(credentials) {
 				if (!credentials?.email || !credentials?.password) {
 					throw new Error("Email and password are required");
 				}
 
-				// Find user by email
+				// Look up the account by email.
 				const account = await prisma.account.findUnique({
 					where: { email: credentials.email },
 				});
@@ -70,7 +82,7 @@ const authOptions: NextAuthOptions = {
 					throw new Error("Invalid email or password");
 				}
 
-				// Compare provided password with stored hash
+				// Compare the provided password with the stored hash.
 				const isPasswordValid = await compare(
 					credentials.password,
 					account.passwordHash
@@ -80,7 +92,7 @@ const authOptions: NextAuthOptions = {
 					throw new Error("Invalid email or password");
 				}
 
-				// Return user object (must include 'id')
+				// Return the user object expected by NextAuth.
 				return {
 					id: account.id,
 					email: account.email,
@@ -91,16 +103,14 @@ const authOptions: NextAuthOptions = {
 		}),
 	],
 	/**
-	 * Session strategy: JWT tokens stored in HTTP-only cookies
-	 * NextAuth automatically manages session lifecycle
+	 * Session strategy: JWT tokens stored in HTTP-only cookies.
 	 */
 	session: {
 		strategy: "jwt",
 		maxAge: 30 * 24 * 60 * 60, // 30 days
 	},
 	/**
-	 * JWT callback: runs when JWT token is created/updated
-	 * Used to add custom claims to the token
+	 * JWT callback used to persist custom claims in the token.
 	 */
 	callbacks: {
 		async jwt({ token, user }) {
@@ -110,10 +120,9 @@ const authOptions: NextAuthOptions = {
 			}
 			return token;
 		},
-		/**
-		 * Session callback: runs when session is accessed
-		 * Customizes what data is available to client via useSession()
-		 */
+			/**
+			 * Session callback used to expose custom fields to the client.
+			 */
 		async session({ session, token }) {
 			if (session.user) {
 				session.user.id = token.id as string;
@@ -125,9 +134,9 @@ const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Export handlers for GET and POST requests
+	// Export the handler for both GET and POST requests.
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
 
-// Export for use in other files (e.g., middleware)
+// Export the config for reuse in other files, such as middleware.
 export default authOptions;

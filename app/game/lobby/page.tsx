@@ -5,9 +5,18 @@ import GameMatchSection from "../../frontend/game/components/GameMatchSection";
 import GamePlayerSidebar from "../../frontend/game/components/GamePlayerSidebar";
 import { useGameController } from "../../frontend/game/hooks/useGameController";
 
+/**
+ * Lobby page.
+ *
+ * This page:
+ * 1. Gets state and handlers from useGameController.
+ * 2. Passes player data into GamePlayerSidebar.
+ * 3. Keeps profile and action sections separated in the layout.
+ */
 export default function GamePage() {
 	const {
 		playerName,
+		avatarUrl,
 		playerStats,
 		handleDisconnect,
 		handleSettings,
@@ -23,8 +32,10 @@ export default function GamePage() {
 			<GameBackground />
 
 			<div className="relative z-10 flex min-h-screen">
+				{/* The sidebar receives ready-to-render data; the hook owns the fetch logic. */}
 				<GamePlayerSidebar
 					playerName={playerName}
+					avatarUrl={avatarUrl}
 					rank={playerStats.rank}
 					wins={playerStats.wins}
 					losses={playerStats.losses}

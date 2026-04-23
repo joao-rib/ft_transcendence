@@ -1,4 +1,4 @@
-"use server";
+"use server"; // Indica que todas as funções neste ficheiro são executadas apenas no servidor por segurança, assim nunca expõe a lógica de base de dados ao cliente.
 
 import { hash } from "bcryptjs";
 import { PrismaClient } from "@/src/generated/prisma/client";
@@ -57,7 +57,8 @@ export async function registerUser(
 			},
 		});
 
-		// Create initial Score records for all games
+		// Create initial Score records for all games.
+		// Promise.all creates three rows (chess/checkers/sueca) with zeroed counters.
 		const games = ["chess", "checkers", "sueca"];
 		await Promise.all(
 			games.map((game) =>
@@ -85,6 +86,6 @@ export async function registerUser(
 			message: "Failed to register user",
 		};
 	} finally {
-		await prisma.$disconnect();
+		await prisma.$disconnect(); //fecha a ligação a db
 	}
 }

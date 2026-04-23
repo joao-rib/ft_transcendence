@@ -3,6 +3,14 @@ interface GameMatchSectionProps {
 	onStartGame: () => void;
 }
 
+/**
+	 * Main action section for the Lobby.
+ *
+	 * This component:
+	 * 1. Shows the main match callout.
+	 * 2. Triggers Rankings through the callback received from the controller.
+	 * 3. Triggers Start Game through the callback received from the controller.
+ */
 export default function GameMatchSection({ onRankings, onStartGame }: GameMatchSectionProps) {
 	return (
 		<main className="flex-1 flex items-center justify-center p-12">
@@ -16,6 +24,7 @@ export default function GameMatchSection({ onRankings, onStartGame }: GameMatchS
 					♟️ Chess Match! ♟️
 				</h1>
 
+				{/* Actions stay decoupled from business logic and only call the received callbacks. */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* Rankings Button */}
 					<button

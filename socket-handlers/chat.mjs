@@ -3,10 +3,19 @@ import { trimText } from "./utils.mjs";
 
 const RECENT_MESSAGE_LIMIT = 50;
 
+/**
+ * Registers the public realtime chat namespace.
+ *
+ * This handler:
+ * 1. Tracks connected users and recent messages.
+ * 2. Supports username changes and chat delivery acknowledgements.
+ * 3. Keeps the in-memory message list bounded.
+ */
 export function registerRealtimeChat(io) {
   const recentMessages = [];
   let connectedUsers = 0;
 
+  // Keep only the most recent messages in memory.
   const pushRecentMessage = (message) => {
     recentMessages.push(message);
 
@@ -24,6 +33,7 @@ export function registerRealtimeChat(io) {
       recentMessages,
     });
 
+    // Broadcast current presence and notify other clients about the join.
     io.emit("presence", { connectedUsers });
     socket.broadcast.emit("peer-joined", {
       username: socket.data.username,
@@ -31,6 +41,7 @@ export function registerRealtimeChat(io) {
     });
 
     socket.on("set-name", (payload) => {
+      // Normalize the requested name before applying it.
       const parsedName = trimText(payload?.username, 24);
 
       if (!parsedName || parsedName === socket.data.username) {
@@ -40,6 +51,7 @@ export function registerRealtimeChat(io) {
       const previousName = socket.data.username;
       socket.data.username = parsedName;
 
+      // Broadcast the name change to every connected client.
       io.emit("name-updated", {
         previousName,
         currentName: parsedName,
@@ -47,6 +59,7 @@ export function registerRealtimeChat(io) {
     });
 
     socket.on("chat-message", (payload, acknowledge) => {
+      // Validate the text before creating and broadcasting the message.
       const text = trimText(payload?.text, 500);
 
       if (!text) {
@@ -67,12 +80,14 @@ export function registerRealtimeChat(io) {
       pushRecentMessage(message);
       io.emit("chat-message", message);
 
+      // Let the sender know the message was accepted.
       if (typeof acknowledge === "function") {
         acknowledge({ ok: true });
       }
     });
 
     socket.on("disconnect", () => {
+      // Update presence counters when a socket leaves.
       connectedUsers = Math.max(0, connectedUsers - 1);
       io.emit("presence", { connectedUsers });
       io.emit("peer-left", {
