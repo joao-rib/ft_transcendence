@@ -13,8 +13,8 @@ export const BOARD_THEME_PALETTES: Record<
 		description: "Default chess.com colors.",
 	},
 	classic: {
-		lightTile: "#ffffff",
-		darkTile: "rgba(106, 226, 14, 0.77)",
+		lightTile: "#ebecd0",
+		darkTile: "#6e8e49",
 		description: "Dark tiles become a softer light green.",
 	},
 	bluish: {
@@ -40,7 +40,7 @@ export function getStoredBoardTheme(): BoardTheme {
 	}
 
 	const storedTheme = window.localStorage.getItem(BOARD_THEME_STORAGE_KEY);
-	return storedTheme === "classic" || storedTheme === "kitty" ? storedTheme : "default";
+	return storedTheme === "classic" || storedTheme === "bluish" ? storedTheme : "default";
 }
 
 export function saveBoardTheme(theme: BoardTheme) {

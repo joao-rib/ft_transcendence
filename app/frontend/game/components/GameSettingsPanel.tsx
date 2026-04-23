@@ -7,7 +7,7 @@ onBoardThemeChange: (theme: BoardTheme) => void;
 onClose: () => void;
 }
 
-const BOARD_THEME_OPTIONS: BoardTheme[] = ["default", "classic", "kitty"];
+const BOARD_THEME_OPTIONS: BoardTheme[] = ["default", "classic", "bluish"];
 
 export default function GameSettingsPanel({
 isOpen,
