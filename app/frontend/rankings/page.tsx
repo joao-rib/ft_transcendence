@@ -11,10 +11,10 @@ import RankingsTable from "./components/RankingsTable";
 interface LeaderboardEntry {
 	rank: number;
 	username: string;
-	wins: number;
-	losses: number;
-	rating: number;
-	winRate: number;
+	//wins: number;
+	//losses: number;
+	//rating: number;
+	//winRate: number;
 }
 
 const fallbackLeaderboard: LeaderboardEntry[] = [
@@ -57,7 +57,8 @@ export default function Rankings() {
 					throw new Error("Empty leaderboard response");
 				}
 
-				setLeaderboard(data);
+				//setLeaderboard(data);
+				setLeaderboard(data.slice(0, 2)); // "slice()" Retorna uma parte do array
 			} catch {
 				setLeaderboard(fallbackLeaderboard);
 				setError(null);
@@ -86,6 +87,15 @@ export default function Rankings() {
 					{error && <RankingsError message={error} />}
 
 					{!loading && !error && <RankingsTable leaderboard={leaderboard} />}
+					{!loading && !error && (
+						<div className="space-y-2 text-white text-xl">
+							{leaderboard.map((entry) => (
+								<div key={entry.rank}>
+									{entry.username}
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 			</main>
 		</div>
