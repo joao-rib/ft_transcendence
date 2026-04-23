@@ -1,4 +1,4 @@
-export type BoardTheme = "default" | "classic" | "kitty";
+export type BoardTheme = "default" | "classic" | "bluish";
 
 export const BOARD_THEME_STORAGE_KEY = "board-theme";
 export const BOARD_THEME_CHANGE_EVENT = "board-theme-change";
@@ -10,17 +10,17 @@ export const BOARD_THEME_PALETTES: Record<
 	default: {
 		lightTile: "#f0D8b7",
 		darkTile: "#B48764",
-		description: "Original board colors from the current CSS theme.",
+		description: "Default chess.com colors.",
 	},
 	classic: {
-		lightTile: "#f0D8b7",
-		darkTile: "rgba(20, 226, 14, 0.8)",
+		lightTile: "#ffffff",
+		darkTile: "rgba(106, 226, 14, 0.77)",
 		description: "Dark tiles become a softer light green.",
 	},
-	kitty: {
-		lightTile: "rgba(255, 0, 154, 0.9)",
-		darkTile: "rgba(243, 239, 146, 0.8)",
-		description: "Pink and toasted yellow tiles.",
+	bluish: {
+		darkTile: "#5788a8",
+		lightTile: "#ffffff",
+		description: "Bluish tones for a softer board.",
 	},
 };
 
