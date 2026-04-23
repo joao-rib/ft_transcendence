@@ -12,13 +12,13 @@ type BroadcastPayload<TState> = {
   state: TState
 }
 
-export function useCrossTabGameSync<TState>(appState: TState, dispatch: AppDispatch) {
+export function useCrossTabGameSync<TState>(appState: TState, dispatch: AppDispatch, enabled = true) {
   const channelRef = useRef<BroadcastChannel | null>(null)
   const tabIdRef = useRef('')
   const skipNextBroadcastRef = useRef(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') {
+    if (!enabled || typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') {
       return
     }
 
@@ -45,10 +45,10 @@ export function useCrossTabGameSync<TState>(appState: TState, dispatch: AppDispa
       channel.close()
       channelRef.current = null
     }
-  }, [dispatch])
+  }, [dispatch, enabled])
 
   useEffect(() => {
-    if (!channelRef.current || !tabIdRef.current) {
+    if (!enabled || !channelRef.current || !tabIdRef.current) {
       return
     }
 
@@ -61,5 +61,5 @@ export function useCrossTabGameSync<TState>(appState: TState, dispatch: AppDispa
       senderId: tabIdRef.current,
       state: appState,
     })
-  }, [appState])
+  }, [appState, enabled])
 }

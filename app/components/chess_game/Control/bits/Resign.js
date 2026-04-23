@@ -1,6 +1,14 @@
+import { useAppContext } from '@/app/contexts/Context'
+
 const Resign = () => {
+  const { onlineGame } = useAppContext()
+
   const handleResign = () => {
-    // Placeholder action until resign game flow is implemented.
+    if (onlineGame?.isOnlineGame) {
+      onlineGame.resignGame()
+      return
+    }
+
     console.log('Resign clicked')
   }
 

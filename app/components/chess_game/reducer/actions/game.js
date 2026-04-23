@@ -33,3 +33,10 @@ export const setupNewGame = () => {
         payload : initGameState
     }
 }
+
+export const syncGameState = (boardState) => {
+    return {
+        type: actionTypes.NEW_GAME,
+        payload: boardState,
+    }
+}

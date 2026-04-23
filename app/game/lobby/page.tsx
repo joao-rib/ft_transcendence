@@ -8,49 +8,56 @@ import GameSettingsPanel from "../../frontend/game/components/GameSettingsPanel"
 import { useGameController } from "../../frontend/game/hooks/useGameController";
 
 export default function GamePage() {
-	const {
-		boardTheme,
-		closeFriends,
-		closeSettings,
-		friends,
-		handleBoardThemeChange,
-		playerName,
-		playerStats,
-		handleDisconnect,
-		handleFriends,
-		handleSettings,
-		handleRankings,
-		handleStartGame,
-		isFriendsOpen,
-		isSettingsOpen,
-	} = useGameController();
+  const {
+    boardTheme,
+    closeFriends,
+    closeSettings,
+    friends,
+    handleBoardThemeChange,
+    playerName,
+    playerStats,
+    handleDisconnect,
+    handleFriends,
+    handleSettings,
+    handleRankings,
+    handleStartGame,
+    isFriendsOpen,
+    isSearching,
+    isSettingsOpen,
+    matchStatus,
+  } = useGameController();
 
-	return (
-		<div className="relative min-h-screen overflow-hidden font-sans">
-			<GameBackground />
+  return (
+    <div className="relative min-h-screen overflow-hidden font-sans">
+      <GameBackground />
 
-			<div className="relative z-10 flex min-h-screen">
-				<GamePlayerSidebar
-					playerName={playerName}
-					rank={playerStats.rank}
-					wins={playerStats.wins}
-					losses={playerStats.losses}
-					onFriends={handleFriends}
-					onSettings={handleSettings}
-					onDisconnect={handleDisconnect}
-				/>
+      <div className="relative z-10 flex min-h-screen">
+        <GamePlayerSidebar
+          playerName={playerName}
+          rank={playerStats.rank}
+          wins={playerStats.wins}
+          losses={playerStats.losses}
+          onFriends={handleFriends}
+          onSettings={handleSettings}
+          onDisconnect={handleDisconnect}
+        />
 
-				<div className="relative flex-1">
-					<GameMatchSection onRankings={handleRankings} onStartGame={handleStartGame} />
-					<GameFriendsPanel isOpen={isFriendsOpen} friends={friends} onClose={closeFriends} />
-					<GameSettingsPanel
-						isOpen={isSettingsOpen}
-						boardTheme={boardTheme}
-						onBoardThemeChange={handleBoardThemeChange}
-						onClose={closeSettings}
-					/>
-				</div>
-			</div>
-		</div>
-	);
+        <div className="relative flex-1">
+          <GameMatchSection
+            isSearching={isSearching}
+            matchStatus={matchStatus}
+            onRankings={handleRankings}
+            onStartGame={handleStartGame}
+          />
+          <GameFriendsPanel isOpen={isFriendsOpen} friends={friends} onClose={closeFriends} />
+          <GameSettingsPanel
+            isOpen={isSettingsOpen}
+            boardTheme={boardTheme}
+            onBoardThemeChange={handleBoardThemeChange}
+            onClose={closeSettings}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
