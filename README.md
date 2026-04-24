@@ -93,6 +93,17 @@ And that's all we need to get started!
 
 ## Project Development // TODO parte mais trabalhosa
 
+### The Team
+
+| Name   | Role            | Responsibilities                                           |
+| ------ | --------------- | ---------------------------------------------------------- |
+| joseoliv | Product Owner | Coordinated tasks, timelines, ensured delivery milestones  |
+| shrodrig | Tech Lead       | Architecture design, backend structure, Prisma integration |
+| joao-rib | Project Manager   | UI/UX, React components, real-time updates                 |
+| jcavadas | Frontend Lead       | WebSockets, chat system, Docker integration                |
+
+---
+
 Run Prisma migrations:
 
 ```bash
@@ -104,17 +115,6 @@ Open database UI:
 ```bash
 npx prisma studio
 ```
-
----
-
-## 👥 Team Information
-
-| Name   | Role            | Responsibilities                                           |
-| ------ | --------------- | ---------------------------------------------------------- |
-| joseoliv | Product Owner | Coordinated tasks, timelines, ensured delivery milestones  |
-| shrodrig | Tech Lead       | Architecture design, backend structure, Prisma integration |
-| joao-rib | Project Manager   | UI/UX, React components, real-time updates                 |
-| jcavadas | Frontend Lead       | WebSockets, chat system, Docker integration                |
 
 ---
 
