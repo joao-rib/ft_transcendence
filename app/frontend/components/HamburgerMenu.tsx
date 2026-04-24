@@ -37,9 +37,7 @@ borderColor: "var(--border-primary)",
 >
 <nav className="space-y-2">
 <a
-href="https://www.chess.com/learn-how-to-play-chess"
-target="_blank"
-rel="noopener noreferrer"
+href="/frontend/rules"
 className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]"
 >
 Rules
