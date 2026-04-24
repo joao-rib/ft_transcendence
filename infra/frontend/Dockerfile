@@ -9,7 +9,6 @@ WORKDIR /app
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm prisma generate
 RUN pnpm build
 
 FROM node:20-alpine AS runner
@@ -27,4 +26,4 @@ COPY --from=builder /app/server.mjs ./server.mjs
 COPY --from=builder /app/socket-handlers ./socket-handlers
 COPY --from=builder /app/prisma ./prisma
 EXPOSE 3000
-CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm start"]
+CMD ["sh", "-c", "pnpm prisma generate && pnpm prisma migrate deploy && pnpm start"]
