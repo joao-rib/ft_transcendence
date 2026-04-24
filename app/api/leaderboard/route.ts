@@ -1,7 +1,13 @@
-import { PrismaClient } from '@/generated/prisma'
+//import { PrismaClient } from '@/generated/prisma'
 // import { PrismaClient } from '../../generated/prisma'
 
-const prisma = new PrismaClient()
+import { PrismaClient } from "@/src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter: adapter as any });
+
+//const prisma = new PrismaClient()
 
 export async function GET() {
   const users = await prisma.account.findMany({
