@@ -13,6 +13,10 @@
     position: absolute;
 }
 
+.piece--dragging {
+    opacity: 0.25;
+}
+
 .piece.bk {background-image: url('../../../../assets/black_king.png');}
 .piece.bq {background-image: url('../../../../assets/black_queen.png');}
 .piece.br {background-image: url('../../../../assets/black_rook.png');}
