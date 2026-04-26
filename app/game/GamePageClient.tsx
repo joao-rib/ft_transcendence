@@ -62,9 +62,17 @@ export default function GamePageClient() {
             <Control>
               {!onlineGame.isOnlineGame ? <TakeBack /> : null}
               <Resign />
-              <div style={{ marginTop: '12px', minWidth: '260px' }}>
-                <CompactChat maxHeight='max-h-80' initialUsername={username || undefined} />
-              </div>
+              {onlineGame.isOnlineGame ? (
+                <div style={{ marginTop: '12px', minWidth: '260px' }}>
+                  <CompactChat
+                    maxHeight='max-h-80'
+                    connectedUsers={onlineGame.chatConnectedPlayers}
+                    status={onlineGame.chatStatus}
+                    messages={onlineGame.chatMessages}
+                    onSendMessage={onlineGame.sendChatMessage}
+                  />
+                </div>
+              ) : null}
             </Control>
           </>
         )}

@@ -24,12 +24,28 @@ type UseOnlineGameSyncParams = {
   username: string | null;
 };
 
+type GameChatMessage = {
+  id: string;
+  username: string;
+  text: string;
+  sentAt: string;
+};
+
+type GameChatAck = {
+  ok: boolean;
+  error?: string;
+};
+
 export function useOnlineGameSync({ appState, dispatch, gameId, playerId, playerToken, username }: UseOnlineGameSyncParams) {
   const socketRef = useRef<Socket | null>(null);
+  const latestBoardStateRef = useRef(appState);
   const hasHydratedFromServerRef = useRef(false);
   const suppressNextSyncRef = useRef(false);
   const [playerColor, setPlayerColor] = useState<"w" | "b" | null>(null);
   const [isGameReady, setIsGameReady] = useState(false);
+  const [chatMessages, setChatMessages] = useState<GameChatMessage[]>([]);
+  const [chatConnectedPlayers, setChatConnectedPlayers] = useState(0);
+  const [chatStatus, setChatStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
 
   useEffect(() => {
     if (!gameId || !playerId || !playerToken || !username) {
@@ -39,8 +55,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     // Reset state for new game
     hasHydratedFromServerRef.current = false;
     suppressNextSyncRef.current = false;
-    setPlayerColor(null);
-    setIsGameReady(false);
 
     const socket = io(getChessUrl(), {
       transports: ["websocket", "polling"],
@@ -52,13 +66,14 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      setChatStatus("connected");
       // Small delay to ensure the server socket handlers are fully registered
       setTimeout(() => {
         socket.emit("join-game", { gameId, playerId, playerToken, username });
       }, 100);
     });
 
-    socket.on("game-state", (payload: any) => {
+    socket.on("game-state", (payload: { playerColor?: "w" | "b"; boardState?: Record<string, unknown> }) => {
       if (payload?.playerColor === "w" || payload?.playerColor === "b") {
         setPlayerColor(payload.playerColor);
       }
@@ -78,9 +93,29 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       dispatch(syncGameState(payload.boardState));
     });
 
-    socket.on("disconnect", (reason: any) => {
+    socket.on("disconnect", () => {
       hasHydratedFromServerRef.current = false;
       setIsGameReady(false);
+      setChatStatus("disconnected");
+      setChatConnectedPlayers(0);
+    });
+
+    socket.on("connect_error", () => {
+      setChatStatus("disconnected");
+      setChatConnectedPlayers(0);
+    });
+
+    socket.on("game-chat-sync", (payload: { connectedPlayers?: number; recentMessages?: GameChatMessage[] }) => {
+      setChatConnectedPlayers(payload.connectedPlayers ?? 0);
+      setChatMessages(payload.recentMessages ?? []);
+    });
+
+    socket.on("game-chat-presence", (payload: { connectedPlayers?: number }) => {
+      setChatConnectedPlayers(payload.connectedPlayers ?? 0);
+    });
+
+    socket.on("game-chat-message", (message: GameChatMessage) => {
+      setChatMessages((previous) => [...previous, message].slice(-50));
     });
 
     return () => {
@@ -93,8 +128,15 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       suppressNextSyncRef.current = false;
       setPlayerColor(null);
       setIsGameReady(false);
+      setChatMessages([]);
+      setChatConnectedPlayers(0);
+      setChatStatus("connecting");
     };
   }, [dispatch, gameId, playerId, playerToken, username]);
+
+  useEffect(() => {
+    latestBoardStateRef.current = appState;
+  }, [appState]);
 
   useEffect(() => {
     if (!gameId || !playerId || !playerToken || !username || !socketRef.current?.connected || !hasHydratedFromServerRef.current) {
@@ -109,7 +151,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     // Only sync if it's our turn (we just made a move)
     if (playerColor && appState.turn !== playerColor) {
       socketRef.current.emit("sync-game-state", {
-        boardState: appState,
+        boardState: latestBoardStateRef.current,
         gameId,
         playerId,
         playerToken,
@@ -130,10 +172,27 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     });
   };
 
+  const sendChatMessage = (text: string) => {
+    return new Promise<boolean>((resolve) => {
+      if (!socketRef.current?.connected) {
+        resolve(false);
+        return;
+      }
+
+      socketRef.current.emit("game-chat-message", { text }, (ack: GameChatAck) => {
+        resolve(Boolean(ack?.ok));
+      });
+    });
+  };
+
   return {
     isOnlineGame: Boolean(gameId && playerId && playerToken && username),
     isGameReady,
     playerColor,
     resignGame,
+    chatMessages,
+    chatConnectedPlayers,
+    chatStatus,
+    sendChatMessage,
   };
 }

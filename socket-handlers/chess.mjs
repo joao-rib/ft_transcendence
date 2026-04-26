@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { trimText } from "./utils.mjs";
 
 const CHESS_NAMESPACE = "/chess";
 const MATCHMAKING_NAMESPACE = "/matchmaking";
@@ -11,6 +12,7 @@ const DRAW_STATUSES = new Set([
   "Game draws due to insufficient material",
 ]);
 const SCORE_DELTA = 7;
+const CHAT_MESSAGE_LIMIT = 50;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: adapter });
@@ -66,6 +68,7 @@ const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
       id: blackPlayer.token,
     },
     boardState: createInitialBoardState(),
+    chatMessages: [],
     resultPersisted: false,
     createdAt: new Date().toISOString(),
   };
@@ -105,6 +108,19 @@ const isFinishedStatus = (status) => {
 
 const calculateLoserRating = (currentRating) => {
   return Math.max(0, currentRating - SCORE_DELTA);
+};
+
+const pushGameChatMessage = (game, message) => {
+  game.chatMessages.push(message);
+
+  if (game.chatMessages.length > CHAT_MESSAGE_LIMIT) {
+    game.chatMessages.shift();
+  }
+};
+
+const getConnectedPlayersInGame = (chessNamespace, gameRoomId) => {
+  const room = chessNamespace.adapter.rooms.get(gameRoomId);
+  return Math.min(2, room ? room.size : 0);
 };
 
 const persistGameResult = async (game) => {
@@ -329,9 +345,43 @@ export function registerChessNamespace(io) {
       socket.data.playerColor = resolvedPlayer.color;
       socket.join(gameId);
       socket.emit("game-state", serializeGameForPlayer(game, resolvedPlayer.color));
+      socket.emit("game-chat-sync", {
+        connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+        recentMessages: game.chatMessages,
+      });
       chessNamespace.to(gameId).emit("player-joined", {
         players: [game.whitePlayer.name, game.blackPlayer.name],
       });
+      chessNamespace.to(gameId).emit("game-chat-presence", {
+        connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+      });
+    });
+
+    socket.on("game-chat-message", (payload, acknowledge) => {
+      const game = chessGames.get(gameId);
+
+      if (!game || !socket.data.playerColor || !socket.rooms.has(gameId)) {
+        acknowledge?.({ ok: false, error: "Unauthorized chat session." });
+        return;
+      }
+
+      const text = trimText(payload?.text, 500);
+      if (!text) {
+        acknowledge?.({ ok: false, error: "Empty message." });
+        return;
+      }
+
+      const senderName = socket.data.playerColor === "w" ? game.whitePlayer.name : game.blackPlayer.name;
+      const message = {
+        id: crypto.randomUUID(),
+        username: senderName,
+        text,
+        sentAt: new Date().toISOString(),
+      };
+
+      pushGameChatMessage(game, message);
+      chessNamespace.to(gameId).emit("game-chat-message", message);
+      acknowledge?.({ ok: true });
     });
 
     socket.on("sync-game-state", async (payload, acknowledge) => {
@@ -391,6 +441,12 @@ export function registerChessNamespace(io) {
       // Clean up the player connection mapping
       if (playerToken) {
         playerConnections.delete(playerToken);
+      }
+
+      if (gameId) {
+        chessNamespace.to(gameId).emit("game-chat-presence", {
+          connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+        });
       }
     });
   });
