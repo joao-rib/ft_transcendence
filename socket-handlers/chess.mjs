@@ -1,9 +1,19 @@
 import crypto from "node:crypto";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const CHESS_NAMESPACE = "/chess";
 const MATCHMAKING_NAMESPACE = "/matchmaking";
 const WHITE_WIN_STATUS = "White wins";
 const BLACK_WIN_STATUS = "Black wins";
+const DRAW_STATUSES = new Set([
+  "Game draws due to stalemate",
+  "Game draws due to insufficient material",
+]);
+const SCORE_DELTA = 7;
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter: adapter });
 
 const chessGames = new Map();
 const waitingPlayers = [];
@@ -56,6 +66,7 @@ const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
       id: blackPlayer.token,
     },
     boardState: createInitialBoardState(),
+    resultPersisted: false,
     createdAt: new Date().toISOString(),
   };
 
@@ -86,6 +97,103 @@ const resolvePlayerFromGame = (game, playerId, playerToken) => {
   }
 
   return null;
+};
+
+const isFinishedStatus = (status) => {
+  return status === WHITE_WIN_STATUS || status === BLACK_WIN_STATUS || DRAW_STATUSES.has(status);
+};
+
+const calculateLoserRating = (currentRating) => {
+  return Math.max(0, currentRating - SCORE_DELTA);
+};
+
+const persistGameResult = async (game) => {
+  if (!game || game.resultPersisted) {
+    return;
+  }
+
+  const status = game.boardState?.status;
+  if (!isFinishedStatus(status)) {
+    return;
+  }
+
+  if (DRAW_STATUSES.has(status)) {
+    game.resultPersisted = true;
+    return;
+  }
+
+  const winnerUsername = status === WHITE_WIN_STATUS ? game.whitePlayer.name : game.blackPlayer.name;
+  const loserUsername = status === WHITE_WIN_STATUS ? game.blackPlayer.name : game.whitePlayer.name;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const accounts = await tx.account.findMany({
+        where: {
+          username: { in: [winnerUsername, loserUsername] },
+        },
+        select: {
+          id: true,
+          username: true,
+          score: {
+            select: {
+              rating: true,
+              wins: true,
+              losses: true,
+            },
+          },
+        },
+      });
+
+      const winner = accounts.find((account) => account.username === winnerUsername);
+      const loser = accounts.find((account) => account.username === loserUsername);
+
+      if (!winner || !loser) {
+        throw new Error("Winner or loser account not found while persisting game result.");
+      }
+
+      const winnerRating = (winner.score?.rating ?? 0) + SCORE_DELTA;
+      const winnerWins = (winner.score?.wins ?? 0) + 1;
+      const winnerLosses = winner.score?.losses ?? 0;
+
+      const loserRating = calculateLoserRating(loser.score?.rating ?? 0);
+      const loserWins = loser.score?.wins ?? 0;
+      const loserLosses = (loser.score?.losses ?? 0) + 1;
+
+      await tx.score.upsert({
+        where: { accountId: winner.id },
+        create: {
+          accountId: winner.id,
+          rating: winnerRating,
+          wins: winnerWins,
+          losses: winnerLosses,
+        },
+        update: {
+          rating: winnerRating,
+          wins: winnerWins,
+          losses: winnerLosses,
+        },
+      });
+
+      await tx.score.upsert({
+        where: { accountId: loser.id },
+        create: {
+          accountId: loser.id,
+          rating: loserRating,
+          wins: loserWins,
+          losses: loserLosses,
+        },
+        update: {
+          rating: loserRating,
+          wins: loserWins,
+          losses: loserLosses,
+        },
+      });
+    });
+
+    game.resultPersisted = true;
+  } catch (error) {
+    console.error("[Chess] Failed to persist game result:", error);
+  }
 };
 
 export function registerMatchmakingNamespace(io) {
@@ -226,7 +334,7 @@ export function registerChessNamespace(io) {
       });
     });
 
-    socket.on("sync-game-state", (payload, acknowledge) => {
+    socket.on("sync-game-state", async (payload, acknowledge) => {
       const game = chessGames.get(gameId);
 
       if (!game || !socket.data.playerColor) {
@@ -252,10 +360,15 @@ export function registerChessNamespace(io) {
       };
 
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+
+      if (isFinishedStatus(game.boardState.status)) {
+        await persistGameResult(game);
+      }
+
       acknowledge?.({ ok: true });
     });
 
-    socket.on("resign-game", () => {
+    socket.on("resign-game", async () => {
       // Mark the game as finished and announce the winner when a player resigns.
       const game = chessGames.get(gameId);
 
@@ -270,6 +383,8 @@ export function registerChessNamespace(io) {
       };
 
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+
+      await persistGameResult(game);
     });
 
     socket.on("disconnect", () => {
