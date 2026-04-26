@@ -2,9 +2,8 @@ interface GamePlayerSidebarProps {
 	playerName: string;
 	// Account.avatarUrl from the database. It can be null.
 	avatarUrl?: string | null;
-	// Current rank value mapped from Score.gamesPlayed.
-	// TODO: revisit this if rank becomes a real rating instead of a count.
-	rank: number;
+	// Chess rating stored in Score.rating.
+	rating: number;
 	wins: number;
 	losses: number;
 	onFriends: () => void;
@@ -15,7 +14,7 @@ interface GamePlayerSidebarProps {
 export default function GamePlayerSidebar({
 	playerName,
 	avatarUrl,
-	rank,
+	rating,
 	wins,
 	losses,
 	onFriends,
@@ -80,9 +79,9 @@ export default function GamePlayerSidebar({
 						}}
 					>
 						<p className="text-sm mb-1" style={{ color: "var(--text-muted)" }}>
-							Rank
+							Rating
 						</p>
-						{rank}
+						{rating}
 					</div>
 					<div
 						className="rounded-xl p-4"

@@ -21,6 +21,11 @@ export default function GamePage() {
     closeFriends,
     closeSettings,
     friends,
+    friendSearchMessage,
+    friendSearchQuery,
+    friendSearchResults,
+    handleAddFriend,
+    handleFriendSearch,
     handleBoardThemeChange,
     playerName,
     playerStats,
@@ -30,9 +35,11 @@ export default function GamePage() {
     handleRankings,
     handleStartGame,
     isFriendsOpen,
+    isFriendsLoading,
     isSearching,
     isSettingsOpen,
     matchStatus,
+    setFriendSearchQuery,
   } = useGameController();
 
   return (
@@ -42,7 +49,7 @@ export default function GamePage() {
       <div className="relative z-10 flex min-h-screen">
         <GamePlayerSidebar
           playerName={playerName}
-          rank={playerStats.rank}
+          rating={playerStats.rating}
           wins={playerStats.wins}
           losses={playerStats.losses}
           onFriends={handleFriends}
@@ -57,7 +64,18 @@ export default function GamePage() {
             onRankings={handleRankings}
             onStartGame={handleStartGame}
           />
-          <GameFriendsPanel isOpen={isFriendsOpen} friends={friends} onClose={closeFriends} />
+          <GameFriendsPanel
+            isOpen={isFriendsOpen}
+            friends={friends}
+            friendSearchMessage={friendSearchMessage}
+            friendSearchQuery={friendSearchQuery}
+            friendSearchResults={friendSearchResults}
+            isLoading={isFriendsLoading}
+            onAddFriend={handleAddFriend}
+            onClose={closeFriends}
+            onFind={handleFriendSearch}
+            onQueryChange={setFriendSearchQuery}
+          />
           <GameSettingsPanel
             isOpen={isSettingsOpen}
             boardTheme={boardTheme}

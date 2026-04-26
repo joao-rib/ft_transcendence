@@ -15,20 +15,8 @@ interface LeaderboardEntry {
 	losses: number;
 	rating: number;
 	winRate: number;
+	isCurrentUser?: boolean;
 }
-
-const fallbackLeaderboard: LeaderboardEntry[] = [
-	{ rank: 1, username: "MasterPlayer", wins: 157, losses: 23, rating: 2450, winRate: 87.2 },
-	{ rank: 2, username: "ChessNinja", wins: 142, losses: 38, rating: 2380, winRate: 78.9 },
-	{ rank: 3, username: "StrategyKing", wins: 128, losses: 42, rating: 2310, winRate: 75.3 },
-	{ rank: 4, username: "TacticalMind", wins: 115, losses: 55, rating: 2210, winRate: 67.6 },
-	{ rank: 5, username: "GrandMaster", wins: 103, losses: 47, rating: 2180, winRate: 68.7 },
-	{ rank: 6, username: "BoardMaster", wins: 98, losses: 52, rating: 2140, winRate: 65.3 },
-	{ rank: 7, username: "QuietMove", wins: 87, losses: 63, rating: 2050, winRate: 58.0 },
-	{ rank: 8, username: "PawnPusher", wins: 76, losses: 74, rating: 1980, winRate: 50.7 },
-	{ rank: 9, username: "EndgameWizard", wins: 69, losses: 81, rating: 1920, winRate: 46.0 },
-	{ rank: 10, username: "OpeningBookworm", wins: 61, losses: 89, rating: 1850, winRate: 40.7 },
-];
 
 export default function Rankings() {
 	const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -58,9 +46,9 @@ export default function Rankings() {
 				}
 
 				setLeaderboard(data);
-			} catch {
-				setLeaderboard(fallbackLeaderboard);
-				setError(null);
+			} catch (error) {
+				console.error("[Rankings] Error loading leaderboard:", error);
+				setError("Could not load the leaderboard right now.");
 			} finally {
 				setLoading(false);
 			}

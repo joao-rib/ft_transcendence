@@ -1,7 +1,7 @@
 "use server"; // Indica que todas as funções neste ficheiro são executadas apenas no servidor por segurança, assim nunca expõe a lógica de base de dados ao cliente.
 
 import { hash } from "bcryptjs";
-import { PrismaClient } from "@/src/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -13,7 +13,7 @@ const prisma = new PrismaClient({ adapter: adapter as any });
  * This function:
  * 1. Hashes the password using bcrypt
  * 2. Creates the user (Account) in the database
- * 3. Creates initial Score records for all games (chess, checkers, sueca)
+ * 3. Creates the initial Score record for chess
  *
  * @param username - User's display name
  * @param email - User's email (must be unique)
@@ -57,22 +57,15 @@ export async function registerUser(
 			},
 		});
 
-		// Create initial Score records for all games.
-		// Promise.all creates three rows (chess/checkers/sueca) with zeroed counters.
-		const games = ["chess", "checkers", "sueca"];
-		await Promise.all(
-			games.map((game) =>
-				prisma.score.create({
-					data: {
-						game: game as "chess" | "checkers" | "sueca",
-						accountId: account.id,
-						gamesPlayed: 0,
-						gamesWon: 0,
-						gamesLost: 0,
-					},
-				})
-			)
-		);
+		// Create one initial score row (chess only).
+		await prisma.score.create({
+			data: {
+				accountId: account.id,
+				rating: 0,
+				wins: 0,
+				losses: 0,
+			},
+		});
 
 		return {
 			success: true,

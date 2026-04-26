@@ -10,7 +10,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { compare } from "bcryptjs";
-import { PrismaClient } from "@/src/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import NextAuth from "next-auth";
 import type { Session } from "next-auth";
@@ -91,6 +91,16 @@ const authOptions: NextAuthOptions = {
 				if (!isPasswordValid) {
 					throw new Error("Invalid email or password");
 				}
+
+				// Mark the account online as soon as the credentials are validated.
+				void prisma.account
+					.update({
+						where: { id: account.id },
+						data: { onlineStatus: "ONLINE" },
+					})
+					.catch((error) => {
+						console.error("[NextAuth] Failed to update online status:", error);
+					});
 
 				// Return the user object expected by NextAuth.
 				return {

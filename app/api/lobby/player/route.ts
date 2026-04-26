@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"; // send ok or error for browser
 import { getServerSession } from "next-auth"; // verify if session is valid
-import { PrismaClient } from "@/src/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import authOptions from "../../auth/[...nextauth]/route";
 
@@ -30,14 +30,13 @@ export async function GET() { //request for read
 			select: {
 				username: true,
 				avatarUrl: true,
-				scores: {
-					where: { game: "chess" },
+				onlineStatus: true,
+				score: {
 					select: {
-						gamesPlayed: true,
-						gamesWon: true,
-						gamesLost: true,
+						rating: true,
+						wins: true,
+						losses: true,
 					},
-					take: 1,
 				},
 			},
 		});
@@ -46,16 +45,17 @@ export async function GET() { //request for read
 			return NextResponse.json({ message: "Account not found" }, { status: 404 });
 		}
 
-		const score = account.scores[0];
+		const score = account.score;
 
 		// Normalize the payload with safe defaults for the frontend.
 		return NextResponse.json({
 			playerName: account.username,
 			avatarUrl: account.avatarUrl,
+			onlineStatus: account.onlineStatus,
 			playerStats: {
-				rank: score?.gamesPlayed ?? 0,
-				wins: score?.gamesWon ?? 0,
-				losses: score?.gamesLost ?? 0,
+				rating: score?.rating ?? 0,
+				wins: score?.wins ?? 0,
+				losses: score?.losses ?? 0,
 			},
 		});
 	} catch (error) {

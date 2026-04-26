@@ -13,17 +13,21 @@ export function useGameController() {
   const [playerName, setPlayerName] = useState("Player");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [playerStats, setPlayerStats] = useState({
+    rating: 0,
     wins: 0,
     losses: 0,
-    rank: 0,
   });
 
-const [isFriendsOpen, setIsFriendsOpen] = useState(false);
-  const [friends] = useState([
-    { id: "1", name: "Ana", status: "online" as const },
-    { id: "2", name: "Rui", status: "offline" as const },
-    { id: "3", name: "Marta", status: "online" as const },
-  ]);
+  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [friends, setFriends] = useState<
+    Array<{ id: string; name: string; status: "online" | "offline" }>
+  >([]);
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
+  const [friendSearchResults, setFriendSearchResults] = useState<
+    Array<{ id: string; name: string; status: "online" | "offline"; isFriend?: boolean }>
+  >([]);
+  const [friendSearchMessage, setFriendSearchMessage] = useState<string | null>(null);
+  const [isFriendsLoading, setIsFriendsLoading] = useState(false);
   const {
     boardTheme,
     closeSettings,
@@ -32,6 +36,20 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
     toggleSettings,
   } = useBoardThemeSettings();
   const { isSearching, matchStatus, startMatchmaking } = useRandomMatchmaking();
+
+  useEffect(() => {
+    const syncPresenceOnExit = () => {
+      const payload = JSON.stringify({ status: "OFFLINE" });
+      const body = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon("/api/account/presence", body);
+    };
+
+    window.addEventListener("beforeunload", syncPresenceOnExit);
+
+    return () => {
+      window.removeEventListener("beforeunload", syncPresenceOnExit);
+    };
+  }, []);
 
   useEffect(() => {
     const loadLobbyPlayerData = async () => {
@@ -50,11 +68,11 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
         // Response mapping:
         // Account.username -> playerName
         // Account.avatarUrl -> avatarUrl
-        // Score.gamesPlayed/gamesWon/gamesLost -> rank/wins/losses
+        // Score.rating/wins/losses -> rating/wins/losses
         setPlayerName(data.playerName ?? "Player");
         setAvatarUrl(data.avatarUrl ?? null);
         setPlayerStats({
-          rank: data.playerStats?.rank ?? 0,
+          rating: data.playerStats?.rating ?? 0,
           wins: data.playerStats?.wins ?? 0,
           losses: data.playerStats?.losses ?? 0,
         });
@@ -63,11 +81,49 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
       }
     };
 
+    const loadFriends = async () => {
+      try {
+        setIsFriendsLoading(true);
+        const response = await fetch("/api/friends", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          console.error("[useGameController] Failed to fetch friends");
+          return;
+        }
+
+        const data = (await response.json()) as {
+          friends?: Array<{ id: string; name: string; status: "online" | "offline" }>;
+        };
+
+        setFriends(data.friends ?? []);
+      } catch (error) {
+        console.error("[useGameController] Error loading friends:", error);
+      } finally {
+        setIsFriendsLoading(false);
+      }
+    };
+
     loadLobbyPlayerData();
+    loadFriends();
   }, []);
 
   const handleDisconnect = async () => {
     try {
+      try {
+        await fetch("/api/account/presence", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "OFFLINE" }),
+        });
+      } catch (presenceError) {
+        console.error("[useGameController] Presence update failed:", presenceError);
+      }
+
       // Sign out using NextAuth and redirect to login page
       await signOut({ redirect: false });
       router.push("/");
@@ -81,7 +137,84 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   };
 
   const handleRankings = () => {
-    console.log("Opening rankings...");
+    router.push("/rankings");
+  };
+
+  const handleFriendSearch = async () => {
+    try {
+      setIsFriendsLoading(true);
+      setFriendSearchMessage(null);
+
+      const query = friendSearchQuery.trim();
+
+      if (!query) {
+        setFriendSearchResults([]);
+        setFriendSearchMessage("Type at least one character to search users.");
+        return;
+      }
+
+      const response = await fetch(`/api/friends?query=${encodeURIComponent(query)}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Friend search failed");
+      }
+
+      const data = (await response.json()) as {
+        results?: Array<{ id: string; name: string; status: "online" | "offline"; isFriend?: boolean }>;
+      };
+
+      const results = data.results ?? [];
+      setFriendSearchResults(results);
+      setFriendSearchMessage(results.length > 0 ? null : "No users found with that prefix.");
+    } catch (error) {
+      console.error("[useGameController] Error searching friends:", error);
+      setFriendSearchMessage("Could not search users right now.");
+      setFriendSearchResults([]);
+    } finally {
+      setIsFriendsLoading(false);
+    }
+  };
+
+  const handleAddFriend = async (friendId: string) => {
+    try {
+      setIsFriendsLoading(true);
+      const response = await fetch("/api/friends", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ friendId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Friend add failed");
+      }
+
+      const friendsResponse = await fetch("/api/friends", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (friendsResponse.ok) {
+        const friendsData = (await friendsResponse.json()) as {
+          friends?: Array<{ id: string; name: string; status: "online" | "offline" }>;
+        };
+
+        setFriends(friendsData.friends ?? []);
+      }
+
+      if (friendSearchQuery.trim()) {
+        await handleFriendSearch();
+      }
+    } catch (error) {
+      console.error("[useGameController] Error adding friend:", error);
+      setFriendSearchMessage("Could not add this user right now.");
+    } finally {
+      setIsFriendsLoading(false);
+    }
   };
 
 
@@ -102,6 +235,11 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
     closeFriends,
     closeSettings,
     friends,
+    friendSearchMessage,
+    friendSearchQuery,
+    friendSearchResults,
+    handleAddFriend,
+    handleFriendSearch,
     handleBoardThemeChange,
     handleDisconnect,
     handleFriends,
@@ -109,10 +247,12 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
     handleStartGame,
     handleSettings: toggleSettings,
     isFriendsOpen,
+    isFriendsLoading,
     isSearching,
     isSettingsOpen,
     matchStatus,
     playerName,
     playerStats,
+    setFriendSearchQuery,
   };
 }
