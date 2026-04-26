@@ -13,7 +13,7 @@ import { compare } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import NextAuth from "next-auth";
-import type { Session } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 
 // Extend the NextAuth session so the frontend can read session.user.id.
@@ -35,7 +35,7 @@ declare module "next-auth/jwt" {
 }
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter: adapter as any });
+const prisma = new PrismaClient({ adapter });
 
 /**
  * NextAuth Configuration
@@ -46,7 +46,7 @@ const prisma = new PrismaClient({ adapter: adapter as any });
  * - Callbacks: Customizes session and JWT tokens
  */
 const authOptions: NextAuthOptions = {
-	adapter: PrismaAdapter(prisma) as any, // Type assertion for compatibility
+	adapter: PrismaAdapter(prisma) as Adapter,
 	providers: [
 		CredentialsProvider({
 			// Provider label shown in the sign-in flow.
@@ -70,7 +70,7 @@ const authOptions: NextAuthOptions = {
 			 */
 			async authorize(credentials) {
 				if (!credentials?.email || !credentials?.password) {
-					throw new Error("Email and password are required");
+					return null;
 				}
 
 				// Look up the account by email.
@@ -79,7 +79,7 @@ const authOptions: NextAuthOptions = {
 				});
 
 				if (!account || !account.passwordHash) {
-					throw new Error("Invalid email or password");
+					return null;
 				}
 
 				// Compare the provided password with the stored hash.
@@ -89,7 +89,12 @@ const authOptions: NextAuthOptions = {
 				);
 
 				if (!isPasswordValid) {
-					throw new Error("Invalid email or password");
+					return null;
+				}
+
+				if (account.onlineStatus === "ONLINE") {
+					console.warn("[NextAuth] Blocked login attempt for already-online account:", account.id);
+					return null;
 				}
 
 				// Mark the account online as soon as the credentials are validated.
@@ -142,6 +147,24 @@ const authOptions: NextAuthOptions = {
 		},
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	events: {
+		async signOut({ token }: { token?: JWT | null }) {
+			const accountId = token?.id;
+
+			if (!accountId) {
+				return;
+			}
+
+			try {
+				await prisma.account.update({
+					where: { id: accountId },
+					data: { onlineStatus: "OFFLINE" },
+				});
+			} catch (error) {
+				console.error("[NextAuth] Failed to mark account offline on signOut:", error);
+			}
+		},
+	},
 };
 
 	// Export the handler for both GET and POST requests.

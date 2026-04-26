@@ -39,7 +39,11 @@ export function useHomePageController() {
 			console.log("[handleLogin] signIn result:", result);
 
 			if (!result?.ok) {
-				setError(result?.error || "Login failed");
+				const providerError = result?.error ?? "CredentialsSignin";
+				const errorMessage = providerError === "CredentialsSignin"
+					? "Invalid credentials or account already active in another browser"
+					: providerError;
+				setError(errorMessage);
 				console.error("[handleLogin] Login failed:", result?.error);
 				return;
 			}
@@ -53,7 +57,10 @@ export function useHomePageController() {
 			setLoginOpen(false);
 			console.log("[handleLogin] router.push() called");
 		} catch (err) {
-			setError("An error occurred during login");
+			const fallbackError = err instanceof Error && err.message.includes("NetworkError")
+				? "This account is already active in another browser or your credentials are invalid."
+				: "An error occurred during login";
+			setError(fallbackError);
 			console.error("[handleLogin] Error:", err);
 		} finally {
 			setIsLoading(false);
