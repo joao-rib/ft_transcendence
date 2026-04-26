@@ -14,13 +14,21 @@ const GameEnds = ({onClosePopup}) => {
         dispatch(setupNewGame())
     }
 
+    const backToLobby = () => {
+        // Navigate back to lobby
+        window.location.href = '/game/lobby';
+    }
+
     const isWin = status.endsWith('wins')
 
     return <div className="popup--inner popup--inner__center">
         <h1>{isWin ? status : 'Draw'}</h1>
         <p>{!isWin && status}</p>
         <div className={`${status}`}/>
-        <button onClick={newGame}>New Game</button>
+        <div className="game-ends-buttons">
+            <button onClick={newGame}>New Game</button>
+            <button onClick={backToLobby} className="back-to-lobby">Back to Lobby</button>
+        </div>
     </div>
    
 }
