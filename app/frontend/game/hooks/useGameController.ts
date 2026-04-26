@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useBoardThemeSettings } from "./useBoardThemeSettings";
 import { useRandomMatchmaking } from "./useRandomMatchmaking";
 
 export function useGameController() {
+  const router = useRouter();
+
   // Safe defaults prevent the UI from breaking before the fetch resolves.
   const [playerName, setPlayerName] = useState("Player");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -62,8 +66,14 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
     loadLobbyPlayerData();
   }, []);
 
-  const handleDisconnect = () => {
-    console.log("Disconnecting...");
+  const handleDisconnect = async () => {
+    try {
+      // Sign out using NextAuth and redirect to login page
+      await signOut({ redirect: false });
+      router.push("/");
+    } catch (error) {
+      console.error("[useGameController] Error disconnecting:", error);
+    }
   };
 
   const handleSettings = () => {
@@ -80,7 +90,7 @@ const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   };
 
   const handleFriends = () => {
-    setIsFriendsOpen((currentValue) => !currentValue);
+    setIsFriendsOpen((currentValue: boolean) => !currentValue);
   };
 
   const closeFriends = () => {
