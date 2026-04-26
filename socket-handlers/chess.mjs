@@ -45,8 +45,16 @@ const serializeGameForPlayer = (game, playerColor) => ({
 const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
   const game = {
     gameId,
-    whitePlayer,
-    blackPlayer,
+    whitePlayer: {
+      ...whitePlayer,
+      // Use token as stable identifier, not socket id
+      id: whitePlayer.token,
+    },
+    blackPlayer: {
+      ...blackPlayer,
+      // Use token as stable identifier, not socket id
+      id: blackPlayer.token,
+    },
     boardState: createInitialBoardState(),
     createdAt: new Date().toISOString(),
   };
@@ -68,11 +76,12 @@ const resolvePlayerFromGame = (game, playerId, playerToken) => {
     return null;
   }
 
-  if (game.whitePlayer.id === playerId && game.whitePlayer.token === playerToken) {
+  // Use playerToken as the stable identifier
+  if (game.whitePlayer.token === playerToken) {
     return { color: "w", player: game.whitePlayer };
   }
 
-  if (game.blackPlayer.id === playerId && game.blackPlayer.token === playerToken) {
+  if (game.blackPlayer.token === playerToken) {
     return { color: "b", player: game.blackPlayer };
   }
 
@@ -161,12 +170,30 @@ export function registerMatchmakingNamespace(io) {
 
 export function registerChessNamespace(io) {
   const chessNamespace = io.of(CHESS_NAMESPACE);
+  const playerConnections = new Map(); // Track player connections by playerToken
 
   chessNamespace.on("connection", (socket) => {
-    const gameId = typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "";
-    const playerId = typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "";
-    const playerToken = typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "";
-    const username = sanitizeUsername(socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
+    // Try to get from auth first (new method), fallback to query (old method)
+    const gameId = socket.handshake.auth?.gameId || (typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "");
+    const playerId = socket.handshake.auth?.playerId || (typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "");
+    const playerToken = socket.handshake.auth?.playerToken || (typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "");
+    const username = sanitizeUsername(socket.handshake.auth?.username || socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
+
+    console.log("[Chess] New connection", { socketId: socket.id, gameId, playerId, playerToken, username });
+
+    // If this player already has a connection, disconnect the old one
+    if (playerToken && playerConnections.has(playerToken)) {
+      const oldSocketId = playerConnections.get(playerToken);
+      const oldSocket = chessNamespace.sockets.get(oldSocketId);
+      if (oldSocket) {
+        oldSocket.disconnect();
+      }
+    }
+
+    // Store this connection
+    if (playerToken) {
+      playerConnections.set(playerToken, socket.id);
+    }
 
     socket.data.gameId = gameId;
     socket.data.playerId = playerId;
@@ -175,6 +202,14 @@ export function registerChessNamespace(io) {
     socket.data.playerColor = null;
 
     socket.on("join-game", () => {
+      console.log("[Chess] Received join-game from", socket.id, "with gameId:", gameId);
+      
+      // Validate that we have required parameters
+      if (!gameId || !playerId || !playerToken) {
+        socket.emit("game-error", { error: "Missing required game parameters." });
+        return;
+      }
+
       const game = chessGames.get(gameId);
       const resolvedPlayer = resolvePlayerFromGame(game, playerId, playerToken);
 
@@ -235,6 +270,13 @@ export function registerChessNamespace(io) {
       };
 
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+    });
+
+    socket.on("disconnect", () => {
+      // Clean up the player connection mapping
+      if (playerToken) {
+        playerConnections.delete(playerToken);
+      }
     });
   });
 

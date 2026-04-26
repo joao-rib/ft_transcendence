@@ -38,10 +38,11 @@ const getInitialUsername = () => {
 
 interface CompactChatProps {
   maxHeight?: string;
+  initialUsername?: string;
 }
 
-export default function CompactChat({ maxHeight = "max-h-96" }: CompactChatProps) {
-  const [username, setUsername] = useState(getInitialUsername);
+export default function CompactChat({ maxHeight = "max-h-96", initialUsername }: CompactChatProps) {
+  const [username, setUsername] = useState(initialUsername ?? getInitialUsername);
   const usernameRef = useRef(username);
   const socketRef = useRef<Socket | null>(null);
   const [draft, setDraft] = useState("");

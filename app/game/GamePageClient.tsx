@@ -52,14 +52,22 @@ export default function GamePageClient() {
   return (
     <AppContext.Provider value={providerState}>
       <div className='App'>
-        <Board />
-        <Control>
-          {!onlineGame.isOnlineGame ? <TakeBack /> : null}
-          <Resign />
-          <div style={{ marginTop: '12px', minWidth: '260px' }}>
-            <CompactChat maxHeight='max-h-80' />
+        {onlineGame.isOnlineGame && !onlineGame.isGameReady ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <p>Waiting for game to load...</p>
           </div>
-        </Control>
+        ) : (
+          <>
+            <Board />
+            <Control>
+              {!onlineGame.isOnlineGame ? <TakeBack /> : null}
+              <Resign />
+              <div style={{ marginTop: '12px', minWidth: '260px' }}>
+                <CompactChat maxHeight='max-h-80' initialUsername={username || undefined} />
+              </div>
+            </Control>
+          </>
+        )}
       </div>
     </AppContext.Provider>
   )
