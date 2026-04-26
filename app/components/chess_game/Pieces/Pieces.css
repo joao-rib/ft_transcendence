@@ -17,19 +17,50 @@
     opacity: 0.25;
 }
 
-.piece.bk {background-image: url('../../../../assets/king_azul_escuro.png');}
-.piece.bq {background-image: url('../../../../assets/black_queen.png');}
-.piece.br {background-image: url('../../../../assets/black_rook.png');}
-.piece.bb {background-image: url('../../../../assets/bishop_azul_escuro.png');}
-.piece.bn {background-image: url('../../../../assets/cavalo_azul_escuro.png');}
-.piece.bp {background-image: url('../../../../assets/pawn_azul_escuro.png');}
+/* Default mode: black/white pieces */
+.pieces--default .piece.bk {background-image: url('../../../../assets/black_king.png');}
+.pieces--default .piece.bq {background-image: url('../../../../assets/black_queen.png');}
+.pieces--default .piece.br {background-image: url('../../../../assets/black_rook.png');}
+.pieces--default .piece.bb {background-image: url('../../../../assets/black_bishop.png');}
+.pieces--default .piece.bn {background-image: url('../../../../assets/black_knight.png');}
+.pieces--default .piece.bp {background-image: url('../../../../assets/black_pawn.png');}
 
-.piece.wk {background-image: url('../../../../assets/king_azul_claro.png');}
-.piece.wq {background-image: url('../../../../assets/white_queen.png');}
-.piece.wr {background-image: url('../../../../assets/white_rook.png');}
-.piece.wb {background-image: url('../../../../assets/bishop_azul_claro.png');}
-.piece.wn {background-image: url('../../../../assets/cavalo_azul_claro.png');}
-.piece.wp {background-image: url('../../../../assets/pawn_azul_claro.png');}
+.pieces--default .piece.wk {background-image: url('../../../../assets/white_king.png');}
+.pieces--default .piece.wq {background-image: url('../../../../assets/white_queen.png');}
+.pieces--default .piece.wr {background-image: url('../../../../assets/white_rook.png');}
+.pieces--default .piece.wb {background-image: url('../../../../assets/white_bishop.png');}
+.pieces--default .piece.wn {background-image: url('../../../../assets/white_knight.png');}
+.pieces--default .piece.wp {background-image: url('../../../../assets/white_pawn.png');}
+
+/* Classic mode: green pieces */
+.pieces--classic .piece.bk {background-image: url('../../../../assets/king_dark_green.png');}
+.pieces--classic .piece.bq {background-image: url('../../../../assets/queen_dark_green.png');}
+.pieces--classic .piece.br {background-image: url('../../../../assets/rook_dark_green.png');}
+.pieces--classic .piece.bb {background-image: url('../../../../assets/bishop_dark_green.png');}
+.pieces--classic .piece.bn {background-image: url('../../../../assets/knight_dark_green.png');}
+.pieces--classic .piece.bp {background-image: url('../../../../assets/pawn_dark_green.png');}
+
+.pieces--classic .piece.wk {background-image: url('../../../../assets/king_light_green.png');}
+.pieces--classic .piece.wq {background-image: url('../../../../assets/queen_light_green.png');}
+.pieces--classic .piece.wr {background-image: url('../../../../assets/rook_light_green.png');}
+.pieces--classic .piece.wb {background-image: url('../../../../assets/bishop_light_green.png');}
+.pieces--classic .piece.wn {background-image: url('../../../../assets/knight_light_green.png');}
+.pieces--classic .piece.wp {background-image: url('../../../../assets/pawn_light_green.png');}
+
+/* Bluish mode: blue pieces */
+.pieces--bluish .piece.bk {background-image: url('../../../../assets/king_dark_blue.png');}
+.pieces--bluish .piece.bq {background-image: url('../../../../assets/queen_dark_blue.png');}
+.pieces--bluish .piece.br {background-image: url('../../../../assets/rook_dark_blue.png');}
+.pieces--bluish .piece.bb {background-image: url('../../../../assets/bishop_dark_blue.png');}
+.pieces--bluish .piece.bn {background-image: url('../../../../assets/knight_dark_blue.png');}
+.pieces--bluish .piece.bp {background-image: url('../../../../assets/pawn_dark_blue.png');}
+
+.pieces--bluish .piece.wk {background-image: url('../../../../assets/king_light_blue.png');}
+.pieces--bluish .piece.wq {background-image: url('../../../../assets/queen_light_blue.png');}
+.pieces--bluish .piece.wr {background-image: url('../../../../assets/rook_light_blue.png');}
+.pieces--bluish .piece.wb {background-image: url('../../../../assets/bishop_light_blue.png');}
+.pieces--bluish .piece.wn {background-image: url('../../../../assets/knight_light_blue.png');}
+.pieces--bluish .piece.wp {background-image: url('../../../../assets/pawn_light_blue.png');}
 
 .piece.pos-07 {transform: translate(0%,0%);}
 .piece.pos-17 {transform: translate(100%,0%);}
