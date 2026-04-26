@@ -17,19 +17,19 @@
     opacity: 0.25;
 }
 
-.piece.bk {background-image: url('../../../../assets/black_king.png');}
+.piece.bk {background-image: url('../../../../assets/king_azul_escuro.png');}
 .piece.bq {background-image: url('../../../../assets/black_queen.png');}
 .piece.br {background-image: url('../../../../assets/black_rook.png');}
-.piece.bb {background-image: url('../../../../assets/black_bishop.png');}
-.piece.bn {background-image: url('../../../../assets/black_knight.png');}
-.piece.bp {background-image: url('../../../../assets/black_pawn.png');}
+.piece.bb {background-image: url('../../../../assets/bishop_azul_escuro.png');}
+.piece.bn {background-image: url('../../../../assets/cavalo_azul_escuro.png');}
+.piece.bp {background-image: url('../../../../assets/pawn_azul_escuro.png');}
 
-.piece.wk {background-image: url('../../../../assets/white_king.png');}
+.piece.wk {background-image: url('../../../../assets/king_azul_claro.png');}
 .piece.wq {background-image: url('../../../../assets/white_queen.png');}
 .piece.wr {background-image: url('../../../../assets/white_rook.png');}
-.piece.wb {background-image: url('../../../../assets/white_bishop.png');}
-.piece.wn {background-image: url('../../../../assets/white_knight.png');}
-.piece.wp {background-image: url('../../../../assets/white_pawn.png');}
+.piece.wb {background-image: url('../../../../assets/bishop_azul_claro.png');}
+.piece.wn {background-image: url('../../../../assets/cavalo_azul_claro.png');}
+.piece.wp {background-image: url('../../../../assets/pawn_azul_claro.png');}
 
 .piece.pos-07 {transform: translate(0%,0%);}
 .piece.pos-17 {transform: translate(100%,0%);}
