@@ -149,6 +149,11 @@ export default function GameFriendsPanel({
 							No friends yet.
 						</p>
 					) : null}
+					{friends.length > 0 ? (
+						<p className="text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>
+							YOURS FRIENDS
+						</p>
+					) : null}
 					{friends.map((friend) => {
 						const isOnline = friend.status === "online";
 

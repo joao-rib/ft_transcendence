@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useBoardThemeSettings } from "./useBoardThemeSettings";
@@ -37,19 +37,75 @@ export function useGameController() {
   } = useBoardThemeSettings();
   const { isSearching, matchStatus, startMatchmaking } = useRandomMatchmaking();
 
+  const updatePresence = useCallback(async (status: "ONLINE" | "OFFLINE") => {
+    try {
+      await fetch("/api/account/presence", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+    } catch (error) {
+      console.error("[useGameController] Presence update failed:", error);
+    }
+  }, []);
+
+  const loadFriends = useCallback(async (options?: { background?: boolean }) => {
+    const isBackground = options?.background ?? false;
+
+    try {
+      if (!isBackground) {
+        setIsFriendsLoading(true);
+      }
+
+      const response = await fetch("/api/friends", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        console.error("[useGameController] Failed to fetch friends");
+        return;
+      }
+
+      const data = (await response.json()) as {
+        friends?: Array<{ id: string; name: string; status: "online" | "offline" }>;
+      };
+
+      setFriends(data.friends ?? []);
+    } catch (error) {
+      console.error("[useGameController] Error loading friends:", error);
+    } finally {
+      if (!isBackground) {
+        setIsFriendsLoading(false);
+      }
+    }
+  }, []);
+
   useEffect(() => {
+    void updatePresence("ONLINE");
+
     const syncPresenceOnExit = () => {
       const payload = JSON.stringify({ status: "OFFLINE" });
       const body = new Blob([payload], { type: "application/json" });
       navigator.sendBeacon("/api/account/presence", body);
     };
 
+    const syncPresenceOnVisible = () => {
+      if (document.visibilityState === "visible") {
+        void updatePresence("ONLINE");
+      }
+    };
+
     window.addEventListener("beforeunload", syncPresenceOnExit);
+    document.addEventListener("visibilitychange", syncPresenceOnVisible);
 
     return () => {
       window.removeEventListener("beforeunload", syncPresenceOnExit);
+      document.removeEventListener("visibilitychange", syncPresenceOnVisible);
     };
-  }, []);
+  }, [updatePresence]);
 
   useEffect(() => {
     const loadLobbyPlayerData = async () => {
@@ -81,48 +137,31 @@ export function useGameController() {
       }
     };
 
-    const loadFriends = async () => {
-      try {
-        setIsFriendsLoading(true);
-        const response = await fetch("/api/friends", {
-          method: "GET",
-          cache: "no-store",
-        });
+    loadLobbyPlayerData();
+    void loadFriends();
+  }, [loadFriends]);
 
-        if (!response.ok) {
-          console.error("[useGameController] Failed to fetch friends");
-          return;
-        }
-
-        const data = (await response.json()) as {
-          friends?: Array<{ id: string; name: string; status: "online" | "offline" }>;
-        };
-
-        setFriends(data.friends ?? []);
-      } catch (error) {
-        console.error("[useGameController] Error loading friends:", error);
-      } finally {
-        setIsFriendsLoading(false);
-      }
+  useEffect(() => {
+    const refreshFriends = () => {
+      void loadFriends({ background: true });
     };
 
-    loadLobbyPlayerData();
-    loadFriends();
-  }, []);
+    const refreshOnFocus = () => {
+      void loadFriends({ background: true });
+    };
+
+    const intervalId = window.setInterval(refreshFriends, 2000);
+    window.addEventListener("focus", refreshOnFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshOnFocus);
+    };
+  }, [loadFriends]);
 
   const handleDisconnect = async () => {
     try {
-      try {
-        await fetch("/api/account/presence", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: "OFFLINE" }),
-        });
-      } catch (presenceError) {
-        console.error("[useGameController] Presence update failed:", presenceError);
-      }
+      await updatePresence("OFFLINE");
 
       // Sign out using NextAuth and redirect to login page
       await signOut({ redirect: false });
@@ -193,18 +232,7 @@ export function useGameController() {
         throw new Error("Friend add failed");
       }
 
-      const friendsResponse = await fetch("/api/friends", {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      if (friendsResponse.ok) {
-        const friendsData = (await friendsResponse.json()) as {
-          friends?: Array<{ id: string; name: string; status: "online" | "offline" }>;
-        };
-
-        setFriends(friendsData.friends ?? []);
-      }
+      await loadFriends();
 
       if (friendSearchQuery.trim()) {
         await handleFriendSearch();
@@ -223,6 +251,7 @@ export function useGameController() {
   };
 
   const handleFriends = () => {
+    void loadFriends({ background: true });
     setIsFriendsOpen((currentValue: boolean) => !currentValue);
   };
 
