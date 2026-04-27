@@ -60,8 +60,6 @@ For additional commands or a simple refresher, feel free to type "make help", fo
 make help
 ```
 
----
-
 ### Setup - .env // TODO esclarecer o método
 
 Create a `.env` file at the root:
@@ -77,8 +75,6 @@ DATABASE_URL_DOCKER=postgresql://user:pass@db:5432/db
 JWT_SECRET=your_secret
 ```
 
----
-
 ### Setup - Starting the App
 
 Simply open up a browser of your choice and type the following into the address bar:
@@ -89,132 +85,17 @@ http://localhost:8080
 
 And that's all we need to get started!
 
----
+## Project Structure
 
-## Project Development // TODO parte mais trabalhosa
+### Features // TODO esclarecer OAuth
 
-### The Team
+* **Chess** - Playable chess board in real time, between 2 users
+* **Chat** - Messaging system between the 2 active players
+* **Leaderboard** - Scores of registered users, as per the chess scoring system
+* **Secure Authentication** - Passwords are adequately hashed, and never visible.
+* **OAuth** - Authentication can also be made via Google account
 
-| Name   | Role            | Responsibilities                                           |
-| ------ | --------------- | ---------------------------------------------------------- |
-| joseoliv | Product Owner | Coordinated tasks, timelines, ensured delivery milestones  |
-| shrodrig | Tech Lead       | Architecture design, backend structure, Prisma integration |
-| joao-rib | Project Manager   | UI/UX, React components, real-time updates                 |
-| jcavadas | Frontend Lead       | WebSockets, chat system, Docker integration                |
-
----
-
-Run Prisma migrations:
-
-```bash
-npx prisma migrate dev
-```
-
-Open database UI:
-
-```bash
-npx prisma studio
-```
-
----
-
-## 📊 Project Management
-
-### Organization
-
-* Agile-inspired workflow
-* Weekly planning and daily sync discussions
-
-### Tools
-
-* GitHub Issues for task tracking
-* GitHub Projects for kanban board
-
-### Communication
-
-* Discord for daily communication
-* GitHub PR reviews for collaboration
-
----
-
-## 🧰 Technical Stack
-
-### Frontend
-
-* Next.js (App Router)
-* React
-* TailwindCSS
-
-### Backend
-
-* Node.js
-* Next.js API Routes
-* WebSockets (Socket.IO)
-
-### Database
-
-* PostgreSQL
-
-### ORM
-
-* Prisma
-
-### DevOps
-
-* Docker / Docker Compose
-* Nginx (reverse proxy)
-
----
-
-### 🧠 Technical Choices Justification
-
-* **Next.js** → unified frontend/backend
-* **Prisma** → type-safe DB access
-* **PostgreSQL** → robust relational DB
-* **Docker** → reproducible environment
-* **WebSockets** → real-time gameplay/chat
-
----
-
-## 🗄 Database Schema
-
-### Main Tables
-
-#### Account
-
-* id (UUID)
-* username (unique)
-* email (unique)
-* createdAt / updatedAt
-
-#### Score
-
-* id
-* userId (FK)
-* wins / losses / rating
-
-#### Relationships
-
-* Account → Scores (1:N)
-* Account → OAuthAccounts (1:N)
-* Account → RefreshTokens (1:N)
-
----
-
-## 🚀 Features List
-
-| Feature        | Description                         | Contributors   |
-| -------------- | ----------------------------------- | -------------- |
-| Chess Game     | Real-time 2-player chess            | joseoliv, jcavadas |
-| Chat System    | Live messaging between players      | jcavadas         |
-| Authentication | User login and session handling     | shrodrig         |
-| Leaderboard    | Ranking system based on performance | joao-rib           |
-| Docker Setup   | Full containerized environment      | jcavadas         |
-| UI/UX          | Responsive design                   | joseoliv         |
-
----
-
-## 🧩 Modules
+### Modules // TODO
 
 | Module                | Type  | Points | Description             | Contributors |
 | --------------------- | ----- | ------ | ----------------------- | ------------ |
@@ -224,34 +105,98 @@ npx prisma studio
 | Database Integration  | Major | 2      | Prisma + PostgreSQL     | shrodrig       |
 | Dockerization         | Minor | 1      | Container setup         | jcavadas       |
 
----
+### The Database // TODO vale a pena meter info sobre todas as tables?
 
-## 👤 Individual Contributions
+Once the Prisma database is set up, we can access it with the Prisma application itself, via the following command:
 
-### joao-rib
+```bash
+npx prisma studio
+```
+Alternatively, it can also be accessed directly with the terminal, though this is a more cumbersome option:
 
-* Managed project timeline and coordination
-* Implemented leaderboard logic
+```bash
+docker exec -it transcendence-db-1 psql -U changemeuser -d changemedb
+```
 
-### shrodrig
+We can then see the tables that were built for the project:
 
+**Account** - The primary table, meant for keeping primary info regarding each individual user account
+
+* id (UUID)
+* username (unique)
+* email (unique)
+* passwordHash
+* emailVerified
+* createdAt
+* updatedAt
+* avatarUrl
+* scores (relation - Score)
+* oauthAccounts (relation - OAuthAccount)
+* refreshTokens (relation - RefreshToken)
+
+**Score** // TODO?
+
+* id
+* userId (FK)
+* wins / losses / rating
+
+**OAuth** // TODO?
+
+* id
+* userId (FK)
+* wins / losses / rating
+
+**RefreshToken** // TODO?
+
+* id
+* userId (FK)
+* wins / losses / rating
+
+## Project Development
+
+### The Team
+
+* joseoliv, the **Product Owner** - Coded the game and managed the end product, from what was feasible to the realistic deadlines.
+* shrodrig, the **Tech Lead** - Defined the docker structure, defined the limits of the tools used in this project.
+* jcavadas, the **Frontend Lead** -  Designed the frontend, and ensured its implementation with other moving parts.
+* joao-rib, the **Product Manager** - Built the database, coordinated meeting timelines and team productivity.
+
+### Individual Contributions
+
+#### joseoliv
+
+* Implemented WebSockets
+* Built chat system
+* Coded game logic and interface
+
+#### shrodrig
+
+* Configured Docker structure and deployment
 * Designed backend architecture
-* Integrated Prisma and database schema
 * Implemented authentication flows
 
-### joseoliv
+#### jcavadas
 
 * Built frontend components
 * Designed UI and user experience
-* Integrated real-time updates in UI
+* Implemented leaderboard logic
 
-### jcavadas
+#### joao-rib
 
-* Implemented WebSocket communication
-* Built chat system
-* Configured Docker and deployment
+* Managed project timeline and coordination
+* Defined Git-related workflow
+* Integrated Prisma and database schema
 
----
+### Technical Choices // TODO completar
+
+Most technical choices in this project were made when evaluating how easy and/or accessible they were, and more importantly, how familiar the team meambers were with these tools.
+
+* **Docker** - Light structure for a full-stack application project
+* **Next.js** - Accessible framework for both backend and frontend
+* **TailwindCSS** - Frontend-specific framework, it is fast and consistent
+* **WebSockets** - Allows real-time user interactivity (game, chat) across stations
+* **Prisma** - API that provides an ORM Database, quite easy to use
+* **PostgreSQL** - Database framework, very secure and flexible
 
 ### Potential Improvements // TODO deixamos esta secção?
 
@@ -259,16 +204,14 @@ npx prisma studio
 * OAuth verification could be more robust
 * More games could eventually be implemented in this framework
 
----
-
 ## Resources
 
 ### Documentation // TODO talvez alguma documentação sobre game logic?
 
-No particular guide or technical documentation was consulted regarding the tools used for our Transcendence. This project relied more on our own respective hands-on experience with the tools and concepts presented, ample communication among team members, and extensive testing.
+No particular guide or technical documentation was consulted regarding the tools used for our Transcendence. This project relied more on our own respective hands-on experience with the tools and concepts presented, ample communication among team members, advice from alumni, and extensive testing.
 
-We did look up the rules for chess, though:
-* [Inception - Basic Concepts](https://medium.com/@imyzf/inception-3979046d90a0)
+For game logic, the following documentation was used as reference:
+* [Rules of Chess](https://medium.com/@imyzf/inception-3979046d90a0)
 
 ### Regarding the use of AI
 
