@@ -187,7 +187,7 @@ We can then see the tables that were built for the project:
 * Defined Git-related workflow
 * Integrated Prisma and database schema
 
-### Technical Choices // TODO completar
+### Technical Choices
 
 Most technical choices in this project were made when evaluating how easy and/or accessible they were, and more importantly, how familiar the team meambers were with these tools.
 
@@ -198,7 +198,7 @@ Most technical choices in this project were made when evaluating how easy and/or
 * **Prisma** - API that provides an ORM Database, quite easy to use
 * **PostgreSQL** - Database framework, very secure and flexible
 
-### Potential Improvements // TODO deixamos esta secção?
+### Potential Improvements
 
 * CPU opponents (single-player mode)
 * OAuth verification could be more robust
@@ -206,12 +206,12 @@ Most technical choices in this project were made when evaluating how easy and/or
 
 ## Resources
 
-### Documentation // TODO talvez alguma documentação sobre game logic?
+### Documentation
 
 No particular guide or technical documentation was consulted regarding the tools used for our Transcendence. This project relied more on our own respective hands-on experience with the tools and concepts presented, ample communication among team members, advice from alumni, and extensive testing.
 
-For game logic, the following documentation was used as reference:
-* [Rules of Chess](https://medium.com/@imyzf/inception-3979046d90a0)
+All chess-related assets were obtained from chess.com:
+* [www.chess.com](https://www.chess.com)
 
 ### Regarding the use of AI
 
