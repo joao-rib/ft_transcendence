@@ -24,7 +24,7 @@ In order for this project to run, the following functionalities must be implemen
 * Docker Compose (`docker compose`)
 * Node.js
 * pnpm
-* An adequately configured VM (.env)
+* An adequately configured VM (.env) // TODO esclarecer
 
 For the purposes of evaluation, the project must run in a predefined station, but it should run just as well in any machine with these prerequisites in place.
 
@@ -87,25 +87,52 @@ And that's all we need to get started!
 
 ## Project Structure
 
-### Features // TODO esclarecer OAuth
+### Features
 
 * **Chess** - Playable chess board in real time, between 2 users
 * **Chat** - Messaging system between the 2 active players
+* **Friends List** - Save other fellow Chess players in a Friends List
 * **Leaderboard** - Scores of registered users, as per the chess scoring system
-* **Secure Authentication** - Passwords are adequately hashed, and never visible.
-* **OAuth** - Authentication can also be made via Google account
+* **Secure Authentication** - User logins are secured via hashed, secure passwords
 
-### Modules // TODO
+### Chosen Modules
 
-| Module                | Type  | Points | Description             | Contributors |
-| --------------------- | ----- | ------ | ----------------------- | ------------ |
-| Web Application       | Major | 2      | Full-stack app          | All          |
-| Real-time Interaction | Major | 2      | WebSocket gameplay/chat | jcavadas       |
-| Authentication        | Major | 2      | Secure login system     | shrodrig       |
-| Database Integration  | Major | 2      | Prisma + PostgreSQL     | shrodrig       |
-| Dockerization         | Minor | 1      | Container setup         | jcavadas       |
+#### Web
 
-### The Database // TODO vale a pena meter info sobre todas as tables?
+* **Major (+2)** - Full-stack framework (Next.js)
+* **Major (+2)** - Real-time features using WebSockets
+* **Major (+2)** - Allow users to interact with other users (Chat system, User profiles, Friends List)
+* **Minor (+1)** - Use an ORM for the Database (Prisma)
+* **Minor (+1)** - Custom-made design system with reusable components (Frontend)
+
+*TOTAL: 8 points*
+
+#### Accessibility and Internationalization
+
+* **Minor (+1)** - Support for additional browsers (Chrome, Firefox)
+
+*TOTAL: 1 point*
+
+#### User Management
+
+* **Major (+2)** - Standard user management and authentication (Profile information, Avatar upload, Friend system)
+* **Minor (+1)** - User statistics and match history (Leaderboard, Scores database)
+
+*TOTAL: 3 points*
+
+#### Gaming and User Experience
+
+* **Major (+2)** - Remote web-based game (Chess)
+* **Major (+2)** - Remote players (1v1 Multiplayer)
+* **Minor (+1)** - Game customization options (Game settings)
+
+*TOTAL: 5 points*
+
+#### Module Total
+
+8 + 1 + 3 + 5 = **17 points**
+
+### The Database
 
 Once the Prisma database is set up, we can access it with the Prisma application itself, via the following command:
 
@@ -130,36 +157,52 @@ We can then see the tables that were built for the project:
 * createdAt
 * updatedAt
 * avatarUrl
-* scores (relation - Score)
-* oauthAccounts (relation - OAuthAccount)
+* onlineStatus (enum)
+* score (relation - Score)
+* friendshipsAsUserA (relation - Friendship)
+* friendshipsAsUserB (relation - Friendship)
 * refreshTokens (relation - RefreshToken)
 
-**Score** // TODO?
+**Score** - This table stores the lifetime match records for each player
 
-* id
-* userId (FK)
-* wins / losses / rating
+* id (UUID)
+* rating
+* wins
+* losses
+* account (relation - Account)
+* accountId (unique, foreign key)
 
-**OAuth** // TODO?
+**Friendship** - This table stores relationships (or rather, friendships) between two distinct user accounts
 
-* id
-* userId (FK)
-* wins / losses / rating
+* id (UUID)
+* userA (relation - Account)
+* userAId (foreign key)
+* userB (relation - Account)
+* userBId (foreign key)
+* createdAt
 
-**RefreshToken** // TODO?
+*Note: Each combination of User IDs must be unique for the Friendship table to function as intended*
 
-* id
-* userId (FK)
-* wins / losses / rating
+**RefreshToken** - This table is meant to handle authentication sessions for users
+
+* id (UUID)
+* tokenHash (unique)
+* expiresAt
+* revokedAt
+* createdAt
+* account (relation - Account)
+* accountId (foreign key)
+
+The database is centered around the primary "Account" table, which stores information on each registered user. The remaining tables serve as support for the user, whether it is saving vital information so that principal features (Score, Friendship) may function as intended, or for managing user sessions for the app itself (RefreshToken).
 
 ## Project Development
 
 ### The Team
 
-* joseoliv, the **Product Owner** - Coded the game and managed the end product, from what was feasible to the realistic deadlines.
-* shrodrig, the **Tech Lead** - Defined the docker structure, defined the limits of the tools used in this project.
-* jcavadas, the **Frontend Lead** -  Designed the frontend, and ensured its implementation with other moving parts.
-* joao-rib, the **Product Manager** - Built the database, coordinated meeting timelines and team productivity.
+* joseoliv, **Developer** and **Product Owner** - Coded the game and managed the end product, from what was feasible to the realistic deadlines.
+* shrodrig, **Developer** and **Tech Lead** - Defined the docker structure, defined the limits of the tools used in this project.
+* jcavadas, **Developer** and **Frontend Lead** -  Designed the frontend, and ensured its implementation with other moving parts.
+* joao-rib, **Developer** and **Product Manager** - Built the database, coordinated meeting timelines and team productivity.
 
 ### Individual Contributions
 
@@ -201,8 +244,8 @@ Most technical choices in this project were made when evaluating how easy and/or
 ### Potential Improvements
 
 * CPU opponents (single-player mode)
-* OAuth verification could be more robust
-* More games could eventually be implemented in this framework
+* Implementing OAuth authentication
+* More games could eventually be implemented in this app's framework
 
 ## Resources
 
