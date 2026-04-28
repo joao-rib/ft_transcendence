@@ -1,9 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function RulesBackLink() {
+	const searchParams = useSearchParams();
+	const requestedReturnTo = searchParams.get("returnTo");
+	const returnTo = requestedReturnTo && requestedReturnTo.startsWith("/") ? requestedReturnTo : "/";
+
 	return (
 		<Link
-			href="/"
+			href={returnTo}
 			className="fixed top-8 left-8 z-20 transition-colors hover:opacity-80 flex items-center gap-2 text-lg"
 			style={{ color: "var(--text-accent)" }}
 		>
@@ -12,7 +19,7 @@ export default function RulesBackLink() {
 					<path d="M15 18l-6-6 6-6" />
 				</svg>
 			</span>
-			<span className="leading-normal">Back to Home</span>
+			<span className="leading-normal">Back</span>
 		</Link>
 	);
 }

@@ -1,65 +1,15 @@
-"use client";
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
 
-import LoginModal from "./frontend/components/LoginModal";
-import SignupModal from "./frontend/components/SignupModal";
-import Background from "./frontend/components/Background";
-import AuthCard from "./frontend/components/AuthCard";
-import HomeFeatureCards from "./frontend/components/HomeFeatureCards";
-import HomeFooterLinks from "./frontend/components/HomeFooterLinks";
-import HomeHero from "./frontend/components/HomeHero";
-import { useHomePageController } from "./frontend/hooks/useHomePageController";
-import ThemeSwitcher from "./frontend/components/ThemeSwitcher";
+import authOptions from "./api/auth/[...nextauth]/route";
+import HomePageClient from "./frontend/components/HomePageClient";
 
-export default function Home() {
-  const {
-    loginOpen,
-    signupOpen,
-    isLoading,
-    error,
-    handleLogin,
-    handleSignup,
-    openLogin,
-    closeLogin,
-    openSignup,
-    closeSignup,
-    switchToLogin,
-    switchToSignup,
-  } = useHomePageController();
+export default async function Home() {
+  const session = await getServerSession(authOptions);
 
-  return (
-    <div className="relative min-h-screen overflow-hidden font-sans">
-      <Background />
+  if (session) {
+    redirect("/game/lobby");
+  }
 
-      <div className="fixed top-6 left-6 z-50">
-        <ThemeSwitcher />
-      </div>
-
-      <LoginModal
-        isOpen={loginOpen}
-        onClose={closeLogin}
-        onSubmit={handleLogin}
-        onSwitchToSignup={switchToSignup}
-        isLoading={isLoading}
-        error={error}
-      />
-
-      <SignupModal
-        isOpen={signupOpen}
-        onClose={closeSignup}
-        onSubmit={handleSignup}
-        onSwitchToLogin={switchToLogin}
-        isLoading={isLoading}
-        error={error}
-      />
-
-      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-8 py-20">
-        <div className="mx-auto w-full max-w-2xl space-y-12">
-          <HomeHero />
-          <AuthCard onLoginClick={openLogin} onSignupClick={openSignup} />
-          <HomeFeatureCards />
-          <HomeFooterLinks />
-        </div>
-      </main>
-    </div>
-  );
+  return <HomePageClient />;
 }

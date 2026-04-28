@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import GlobalHamburgerMenu from "./frontend/components/GlobalHamburgerMenu";
 import ThemeInitializer from "./frontend/components/ThemeInitializer";
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeInitializer />
-        <GlobalHamburgerMenu />
+        <Suspense fallback={null}>
+          <GlobalHamburgerMenu />
+        </Suspense>
         {children}
       </body>
     </html>
