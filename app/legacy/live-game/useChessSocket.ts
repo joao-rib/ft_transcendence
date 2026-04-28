@@ -34,6 +34,14 @@ type AckPayload = {
 
 const CHESS_NAMESPACE = "/chess";
 
+/**
+ * Realtime socket hook for the chess namespace.
+ *
+ * This hook:
+ * 1. Opens a Socket.IO connection to synchronize game state.
+ * 2. Listens for game, player, and chat events.
+ * 3. Exposes actions to move, chat, and resign.
+ */
 export function useChessSocket(gameId: string | null, username: string) {
   const socketRef = useRef<Socket | null>(null);
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">(
@@ -47,14 +55,14 @@ export function useChessSocket(gameId: string | null, username: string) {
   useEffect(() => {
     if (!gameId) return;
 
-    // Force WSS in HTTPS, WS in HTTP (for secure communication)
+    // Use WSS over HTTPS and WS over HTTP for local development.
     const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
     const socketUrl = isSecure 
       ? `wss://${window.location.host}${CHESS_NAMESPACE}`
       : `ws://${window.location.host}${CHESS_NAMESPACE}`;
 
     const socket = io(socketUrl, {
-      // In HTTPS: only websocket (secure). In HTTP: allow fallback to polling for dev
+      // HTTPS: websocket only. HTTP: websocket plus polling for dev compatibility.
       transports: isSecure ? ["websocket"] : ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -80,22 +88,22 @@ export function useChessSocket(gameId: string | null, username: string) {
       setError("Connection interrupted. Trying to reconnect...");
     });
 
-    // Recebe o estado inicial do jogo
+    // Receive the initial synced game state.
     socket.on("game-state", (state: GameState) => {
       setGameState(state);
     });
 
-    // Recebe atualização quando um jogador entra
+    // Update the player list when someone joins.
     socket.on("player-joined", (payload: { username: string; players: string[] }) => {
       setPlayers(payload.players ?? []);
     });
 
-    // Recebe atualização quando um jogador sai
+    // Update the player list when someone leaves.
     socket.on("player-left", (payload: { username: string; players: string[] }) => {
       setPlayers(payload.players ?? []);
     });
 
-    // Recebe um movimento válido do adversário
+    // Apply a valid move received from the opponent.
     socket.on("move-executed", (move: GameMove) => {
       setGameState((prev) => {
         if (!prev) return prev;
@@ -107,12 +115,12 @@ export function useChessSocket(gameId: string | null, username: string) {
       });
     });
 
-    // Recebe mensagens de chat do jogo
+    // Keep only the latest 50 chat messages to avoid unbounded growth.
     socket.on("game-chat-message", (message: GameMessage) => {
-      setGameMessages((prev) => [...prev, message].slice(-50)); // Manter últimas 50
+      setGameMessages((prev) => [...prev, message].slice(-50));
     });
 
-    // Notificação quando o jogo termina
+    // Mark the game as finished when the server announces the end.
     socket.on("game-finished", (payload: { winner: string; reason: string }) => {
       setGameState((prev) => {
         if (!prev) return prev;
@@ -130,6 +138,7 @@ export function useChessSocket(gameId: string | null, username: string) {
   }, [gameId, username]);
 
   const makeMove = (from: string, to: string, callback?: (ack: AckPayload) => void) => {
+    // Send a move with ACK-based error feedback.
     if (!socketRef.current?.connected) {
       setError("Not connected to game server");
       return;
@@ -152,6 +161,7 @@ export function useChessSocket(gameId: string | null, username: string) {
   };
 
   const sendGameMessage = (text: string, callback?: (ack: AckPayload) => void) => {
+    // Send a chat message with ACK-based error feedback.
     if (!socketRef.current?.connected) {
       setError("Not connected to game server");
       return;
@@ -173,6 +183,7 @@ export function useChessSocket(gameId: string | null, username: string) {
   };
 
   const resignFromGame = () => {
+    // Emit the resign event to the server.
     if (!socketRef.current?.connected) return;
     socketRef.current.emit("resign-game", { gameId });
   };
@@ -186,6 +197,5 @@ export function useChessSocket(gameId: string | null, username: string) {
     makeMove,
     sendGameMessage,
     resignFromGame,
-    socket: socketRef.current,
   };
 }

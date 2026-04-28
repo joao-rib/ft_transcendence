@@ -55,21 +55,29 @@ export default function GamePageClient() {
   return (
     <AppContext.Provider value={providerState}>
       <div className='App'>
-        {isReadyToRender ? (
+        {onlineGame.isOnlineGame && !onlineGame.isGameReady ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <p>Waiting for game to load...</p>
+          </div>
+        ) : (
           <>
             <Board />
             <Control>
               {!onlineGame.isOnlineGame ? <TakeBack /> : null}
               <Resign />
-              <div style={{ marginTop: '12px', minWidth: '260px' }}>
-                <CompactChat maxHeight='max-h-80' />
-              </div>
+              {onlineGame.isOnlineGame ? (
+                <div style={{ marginTop: '12px', minWidth: '260px' }}>
+                  <CompactChat
+                    maxHeight='max-h-80'
+                    connectedUsers={onlineGame.chatConnectedPlayers}
+                    status={onlineGame.chatStatus}
+                    messages={onlineGame.chatMessages}
+                    onSendMessage={onlineGame.sendChatMessage}
+                  />
+                </div>
+              ) : null}
             </Control>
           </>
-        ) : (
-          <div style={{ padding: '20px', textAlign: 'center' }}>
-            Connecting to game...
-          </div>
         )}
       </div>
     </AppContext.Provider>
