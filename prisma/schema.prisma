@@ -4,8 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  //output = "../src/generated/prisma"
   moduleFormat = "esm"
 }
 
@@ -24,28 +24,69 @@ model Account {
   passwordHash  String?           // Nullable
   emailVerified DateTime?         // Nullable
   createdAt     DateTime @default(now()) // Default value generator. Records current timestamp
-  updatedAt     DateTime @updatedAt // Records timestamp for most recent change
+  updatedAt     DateTime @updatedAt      // Records timestamp for most recent change
 
-  oauthAccounts OAuthAccount[] // Number of OAuth accounts
+  avatarUrl     String?   // Nullable
+  onlineStatus  OnlineStatus @default(OFFLINE)
+  score         Score?
+
+  // oauthAccounts OAuthAccount[] // Number of OAuth accounts
+  friendshipsAsUserA Friendship[] @relation("FriendshipUserA")
+  friendshipsAsUserB Friendship[] @relation("FriendshipUserB")
   refreshTokens RefreshToken[]
 }
 
-enum OAuthProvider {
-  google
-  github
-  apple
+// Score: Player record for each game
+
+/*enum Game {
+  chess
+  checkers
+  sueca
+}*/
+
+enum OnlineStatus {
+  ONLINE
+  OFFLINE
 }
 
-model OAuthAccount {
-  id                String  @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
-  provider          OAuthProvider
-  providerAccountId String
+model Score {
+  id            String   @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
+  rating        Int      @default(0)
+  wins          Int      @default(0)
+  losses        Int      @default(0)
 
-  account           Account @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
-  accountId         String  @unique // Must be unique
-
-  @@unique([provider, providerAccountId]) // Combination of fields must be unique
+  account       Account  @relation(fields: [accountId], references: [id]) // Defines a foreign key relationship
+  accountId     String   @unique // One score row per account (chess only)
 }
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userA     Account  @relation("FriendshipUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userAId   String
+  userB     Account  @relation("FriendshipUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  userBId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+}
+
+// enum OAuthProvider {
+//   google
+//   github
+//   apple
+// }
+
+// model OAuthAccount {
+//   id                String  @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
+//   provider          OAuthProvider
+//   providerAccountId String
+
+//   account           Account @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
+//   accountId         String  @unique // Must be unique
+
+//   @@unique([provider, providerAccountId]) // Combination of fields must be unique
+// }
 
 model RefreshToken {
   id         String   @id @default(uuid())  // Unique key. Default value generator. Universally unique identifier.
@@ -54,6 +95,6 @@ model RefreshToken {
   revokedAt  DateTime?                      // Nullable
   createdAt  DateTime @default(now())       // Default value generator. Records current timestamp
 
-  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
-  accountId String    @unique               // Must be unique
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
+  accountId  String   @unique               // Must be unique
 }
