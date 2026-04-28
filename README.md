@@ -100,10 +100,9 @@ And that's all we need to get started!
 
 #### User Management
 
-* **Major (+2)** - Standard user management and authentication (Profile information, Avatar upload, Friend system)
 * **Minor (+1)** - User statistics and match history (Leaderboard, Scores database)
 
-*TOTAL: 3 points*
+*TOTAL: 1 point*
 
 #### Gaming and User Experience
 
@@ -115,7 +114,7 @@ And that's all we need to get started!
 
 #### Module Total
 
-8 + 1 + 3 + 5 = **17 points**
+8 + 1 + 1 + 5 = **15 points**
 
 ### The Database
 
