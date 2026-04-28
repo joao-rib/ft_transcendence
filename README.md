@@ -24,7 +24,7 @@ In order for this project to run, the following functionalities must be implemen
 * Docker Compose (`docker compose`)
 * Node.js
 * pnpm
-* An adequately configured VM (.env) // TODO esclarecer
+* An adequately configured VM (ex.: .env)
 
 For the purposes of evaluation, the project must run in a predefined station, but it should run just as well in any machine with these prerequisites in place.
 
@@ -58,21 +58,6 @@ For additional commands or a simple refresher, feel free to type "make help", fo
 
 ```bash
 make help
-```
-
-### Setup - .env // TODO esclarecer o método
-
-Create a `.env` file at the root:
-
-```env
-DB_USER=youruser
-DB_PASSWORD=yourpassword
-DB_NAME=yourdb
-
-DATABASE_URL=postgresql://user:pass@localhost:5432/db
-DATABASE_URL_DOCKER=postgresql://user:pass@db:5432/db
-
-JWT_SECRET=your_secret
 ```
 
 ### Setup - Starting the App
