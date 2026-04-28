@@ -82,23 +82,17 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
         return;
       }
 
-<<<<<<< HEAD
       // Track how many moves the server has so we don't echo them back
       if (Array.isArray(payload.boardState.movesList)) {
         lastSyncedMovesCountRef.current = payload.boardState.movesList.length;
       }
 
-      hasHydratedFromServerRef.current = true;
-=======
-      // First time receiving game state
-      if (!hasHydratedFromServerRef.current) {
-        hasHydratedFromServerRef.current = true;
-        suppressNextSyncRef.current = true;
-        setIsGameReady(true);
-      }
+	  // Mark as hydrated on first game state and set ready
+  	if (!hasHydratedFromServerRef.current) {
+    	hasHydratedFromServerRef.current = true;
+    	setIsGameReady(true);
+  	}
 
-      // Always sync the board state when receiving from server
->>>>>>> main
       dispatch(syncGameState(payload.boardState));
     });
 
@@ -157,7 +151,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       return;
     }
 
-<<<<<<< HEAD
     lastSyncedMovesCountRef.current = appState.movesList.length;
 
     socketRef.current.emit("sync-game-state", {
@@ -168,19 +161,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       username,
     });
   }, [appState.movesList.length, appState.status, appState.turn, gameId, playerId, playerToken, username]);
-=======
-    // Only sync if it's our turn (we just made a move)
-    if (playerColor && appState.turn !== playerColor) {
-      socketRef.current.emit("sync-game-state", {
-        boardState: latestBoardStateRef.current,
-        gameId,
-        playerId,
-        playerToken,
-        username,
-      });
-    }
-  }, [appState.movesList.length, appState.turn, gameId, playerId, playerToken, username, playerColor]);
->>>>>>> main
 
   const resignGame = () => {
     if (!socketRef.current?.connected) {
