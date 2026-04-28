@@ -1,22 +1,18 @@
+import { useRouter } from 'next/navigation'
 import { Status } from '../../constants';
 import { useAppContext }from '@/app/contexts/Context'
-import { setupNewGame } from '../../reducer/actions/game';
 import './GameEnds.css'
 
-const GameEnds = ({onClosePopup}) => {
+const GameEnds = () => {
 
-    const { appState : {status} , dispatch } = useAppContext();
+    const router = useRouter()
+    const { appState : {status} } = useAppContext();
     
     if (status === Status.ongoing || status === Status.promoting)
         return null
 
-    const newGame = () => {
-        dispatch(setupNewGame())
-    }
-
-    const backToLobby = () => {
-        // Navigate back to lobby
-        window.location.href = '/game/lobby';
+    const returnToLobby = () => {
+        router.replace('/game/lobby')
     }
 
     const isWin = status.endsWith('wins')
@@ -25,10 +21,7 @@ const GameEnds = ({onClosePopup}) => {
         <h1>{isWin ? status : 'Draw'}</h1>
         <p>{!isWin && status}</p>
         <div className={`${status}`}/>
-        <div className="game-ends-buttons">
-            <button onClick={newGame}>New Game</button>
-            <button onClick={backToLobby} className="back-to-lobby">Back to Lobby</button>
-        </div>
+        <button onClick={returnToLobby}>Return to lobby</button>
     </div>
    
 }

@@ -40,7 +40,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
   const socketRef = useRef<Socket | null>(null);
   const latestBoardStateRef = useRef(appState);
   const hasHydratedFromServerRef = useRef(false);
-  const suppressNextSyncRef = useRef(false);
+  const lastSyncedMovesCountRef = useRef(0);
   const [playerColor, setPlayerColor] = useState<"w" | "b" | null>(null);
   const [isGameReady, setIsGameReady] = useState(false);
   const [chatMessages, setChatMessages] = useState<GameChatMessage[]>([]);
@@ -54,7 +54,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
 
     // Reset state for new game
     hasHydratedFromServerRef.current = false;
-    suppressNextSyncRef.current = false;
 
     const socket = io(getChessUrl(), {
       transports: ["websocket", "polling"],
@@ -82,14 +81,17 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
         return;
       }
 
-      // First time receiving game state
-      if (!hasHydratedFromServerRef.current) {
-        hasHydratedFromServerRef.current = true;
-        suppressNextSyncRef.current = true;
-        setIsGameReady(true);
+      // Track how many moves the server has so we don't echo them back
+      if (Array.isArray(payload.boardState.movesList)) {
+        lastSyncedMovesCountRef.current = payload.boardState.movesList.length;
       }
 
-      // Always sync the board state when receiving from server
+	  // Mark as hydrated on first game state and set ready
+  	if (!hasHydratedFromServerRef.current) {
+    	hasHydratedFromServerRef.current = true;
+    	setIsGameReady(true);
+  	}
+
       dispatch(syncGameState(payload.boardState));
     });
 
@@ -125,7 +127,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
         socketRef.current = null;
       }
       hasHydratedFromServerRef.current = false;
-      suppressNextSyncRef.current = false;
+      lastSyncedMovesCountRef.current = 0;
       setPlayerColor(null);
       setIsGameReady(false);
       setChatMessages([]);
@@ -143,22 +145,21 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       return;
     }
 
-    if (suppressNextSyncRef.current) {
-      suppressNextSyncRef.current = false;
+    // Only emit when we have a NEW local move beyond what was last synced from server
+    if (appState.movesList.length <= lastSyncedMovesCountRef.current) {
       return;
     }
 
-    // Only sync if it's our turn (we just made a move)
-    if (playerColor && appState.turn !== playerColor) {
-      socketRef.current.emit("sync-game-state", {
-        boardState: latestBoardStateRef.current,
-        gameId,
-        playerId,
-        playerToken,
-        username,
-      });
-    }
-  }, [appState.movesList.length, appState.turn, gameId, playerId, playerToken, username, playerColor]);
+    lastSyncedMovesCountRef.current = appState.movesList.length;
+
+    socketRef.current.emit("sync-game-state", {
+      boardState: appState,
+      gameId,
+      playerId,
+      playerToken,
+      username,
+    });
+  }, [appState.movesList.length, appState.status, appState.turn, gameId, playerId, playerToken, username]);
 
   const resignGame = () => {
     if (!socketRef.current?.connected) {

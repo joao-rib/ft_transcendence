@@ -17,3 +17,8 @@
     cursor: pointer;
     font-weight: 600;
 }
+
+.resign-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -24,19 +24,10 @@ model Account {
   onlineStatus   OnlineStatus @default(OFFLINE)
   score         Score?
 
-  // oauthAccounts OAuthAccount[] // Number of OAuth accounts
   friendshipsAsUserA Friendship[] @relation("FriendshipUserA")
   friendshipsAsUserB Friendship[] @relation("FriendshipUserB")
   refreshTokens RefreshToken[]
 }
-
-// Score: Player record for each game
-
-/*enum Game {
-  chess
-  checkers
-  sueca
-}*/
 
 enum OnlineStatus {
   ONLINE
@@ -64,23 +55,6 @@ model Friendship {
   @@unique([userAId, userBId])
   @@index([userBId])
 }
-
-// enum OAuthProvider {
-//   google
-//   github
-//   apple
-// }
-
-// model OAuthAccount {
-//   id                String  @id @default(uuid()) // Unique key. Default value generator. Universally unique identifier.
-//   provider          OAuthProvider
-//   providerAccountId String
-
-//   account           Account @relation(fields: [accountId], references: [id], onDelete: Cascade) // Defines a foreign key relationship
-//   accountId         String  @unique // Must be unique
-
-//   @@unique([provider, providerAccountId]) // Combination of fields must be unique
-// }
 
 model RefreshToken {
   id         String   @id @default(uuid())  // Unique key. Default value generator. Universally unique identifier.

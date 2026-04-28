@@ -21,11 +21,11 @@ const Piece = ({
             return
         }
 
+        const pieceElement = e.currentTarget
+        pieceElement.classList.add('piece--dragging')
+
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", `${piece},${rank},${file}`)
-        setTimeout(() => {
-            e.target.style.display = 'none'
-        }, 0)
 
         const candidateMoves =
             arbiter.getValidMoves({
@@ -39,8 +39,9 @@ const Piece = ({
         dispatch(generateCandidates({ candidateMoves }))
 
     }
+
     const onDragEnd = e => {
-        e.target.style.display = 'block'
+        e.currentTarget.classList.remove('piece--dragging')
     }
 
     return (
@@ -49,7 +50,6 @@ const Piece = ({
             draggable={isDraggable}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-
         />)
 }
 
