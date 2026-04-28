@@ -36,7 +36,6 @@ declare module "next-auth/jwt" {
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
-const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
 
 /**
  * NextAuth Configuration
@@ -147,7 +146,7 @@ const authOptions: NextAuthOptions = {
 			return session;
 		},
 	},
-	secret: authSecret,
+	secret: process.env.NEXTAUTH_SECRET,
 	events: {
 		async signOut({ token }: { token?: JWT | null }) {
 			const accountId = token?.id;
