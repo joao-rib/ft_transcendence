@@ -89,6 +89,10 @@ And that's all we need to get started!
 * **Major (+2)** - Allow users to interact with other users (Chat system, User profiles, Friends List)
 * **Minor (+1)** - Use an ORM for the Database (Prisma)
 * **Minor (+1)** - Custom-made design system with reusable components (Frontend)
+    - *Reusable elements*
+        - Frontend Environment
+        - Game Board
+        - 6 pieces (King, Queen, Pawn, Rook, Knight, Bishop)
 
 *TOTAL: 8 points*
 
