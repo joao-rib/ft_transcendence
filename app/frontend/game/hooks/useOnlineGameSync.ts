@@ -54,7 +54,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
 
     // Reset state for new game
     hasHydratedFromServerRef.current = false;
-    suppressNextSyncRef.current = false;
 
     const socket = io(getChessUrl(), {
       transports: ["websocket", "polling"],
