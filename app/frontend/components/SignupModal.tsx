@@ -5,9 +5,11 @@ interface SignupModalProps {
 	onClose: () => void;
 	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 	onSwitchToLogin: () => void;
+	isLoading?: boolean;
+	error?: string | null;
 }
 
-export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin }: SignupModalProps) {
+export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin, isLoading = false, error = null }: SignupModalProps) {
 	if (!isOpen) return null;
 
 	return (
@@ -45,7 +47,8 @@ export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin
 								type="text"
 								required
 								placeholder="johndoe"
-								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors"
+								disabled={isLoading}
+								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors disabled:opacity-50"
 								style={{
 									backgroundColor: "var(--overlay-light)",
 									borderColor: "var(--border-primary)",
@@ -64,7 +67,8 @@ export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin
 								type="email"
 								required
 								placeholder="your@email.com"
-								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors"
+								disabled={isLoading}
+								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors disabled:opacity-50"
 								style={{
 									backgroundColor: "var(--overlay-light)",
 									borderColor: "var(--border-primary)",
@@ -84,7 +88,8 @@ export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin
 								required
 								placeholder="••••••••"
 								minLength={8}
-								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors"
+								disabled={isLoading}
+								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors disabled:opacity-50"
 								style={{
 									backgroundColor: "var(--overlay-light)",
 									borderColor: "var(--border-primary)",
@@ -93,15 +98,22 @@ export default function SignupModal({ isOpen, onClose, onSubmit, onSwitchToLogin
 							/>
 						</div>
 						
+						{error && (
+							<div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "rgba(255, 0, 0, 0.1)", color: "#ff6b6b" }}>
+								{error}
+							</div>
+						)}
+						
 						<button
 							type="submit"
-							className="w-full font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-95 mt-6"
+							disabled={isLoading}
+							className="w-full font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-95 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
 							style={{
 								background: "linear-gradient(to right, var(--avatar-mid), var(--avatar-end))",
 								color: "var(--bg-primary)",
 							}}
 						>
-							Create Account
+							{isLoading ? "Creating Account..." : "Create Account"}
 						</button>
 					</form>
 					

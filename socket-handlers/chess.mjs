@@ -1,9 +1,21 @@
 import crypto from "node:crypto";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { trimText } from "./utils.mjs";
 
 const CHESS_NAMESPACE = "/chess";
 const MATCHMAKING_NAMESPACE = "/matchmaking";
 const WHITE_WIN_STATUS = "White wins";
 const BLACK_WIN_STATUS = "Black wins";
+const DRAW_STATUSES = new Set([
+  "Game draws due to stalemate",
+  "Game draws due to insufficient material",
+]);
+const SCORE_DELTA = 7;
+const CHAT_MESSAGE_LIMIT = 50;
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter: adapter });
 
 const chessGames = new Map();
 const waitingPlayers = [];
@@ -45,9 +57,19 @@ const serializeGameForPlayer = (game, playerColor) => ({
 const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
   const game = {
     gameId,
-    whitePlayer,
-    blackPlayer,
+    whitePlayer: {
+      ...whitePlayer,
+      // Use token as stable identifier, not socket id
+      id: whitePlayer.token,
+    },
+    blackPlayer: {
+      ...blackPlayer,
+      // Use token as stable identifier, not socket id
+      id: blackPlayer.token,
+    },
     boardState: createInitialBoardState(),
+    chatMessages: [],
+    resultPersisted: false,
     createdAt: new Date().toISOString(),
   };
 
@@ -68,15 +90,126 @@ const resolvePlayerFromGame = (game, playerId, playerToken) => {
     return null;
   }
 
-  if (game.whitePlayer.id === playerId && game.whitePlayer.token === playerToken) {
+  // Use playerToken as the stable identifier
+  if (game.whitePlayer.token === playerToken) {
     return { color: "w", player: game.whitePlayer };
   }
 
-  if (game.blackPlayer.id === playerId && game.blackPlayer.token === playerToken) {
+  if (game.blackPlayer.token === playerToken) {
     return { color: "b", player: game.blackPlayer };
   }
 
   return null;
+};
+
+const isFinishedStatus = (status) => {
+  return status === WHITE_WIN_STATUS || status === BLACK_WIN_STATUS || DRAW_STATUSES.has(status);
+};
+
+const calculateLoserRating = (currentRating) => {
+  return Math.max(0, currentRating - SCORE_DELTA);
+};
+
+const pushGameChatMessage = (game, message) => {
+  game.chatMessages.push(message);
+
+  if (game.chatMessages.length > CHAT_MESSAGE_LIMIT) {
+    game.chatMessages.shift();
+  }
+};
+
+const getConnectedPlayersInGame = (chessNamespace, gameRoomId) => {
+  const room = chessNamespace.adapter.rooms.get(gameRoomId);
+  return Math.min(2, room ? room.size : 0);
+};
+
+const persistGameResult = async (game) => {
+  if (!game || game.resultPersisted) {
+    return;
+  }
+
+  const status = game.boardState?.status;
+  if (!isFinishedStatus(status)) {
+    return;
+  }
+
+  if (DRAW_STATUSES.has(status)) {
+    game.resultPersisted = true;
+    return;
+  }
+
+  const winnerUsername = status === WHITE_WIN_STATUS ? game.whitePlayer.name : game.blackPlayer.name;
+  const loserUsername = status === WHITE_WIN_STATUS ? game.blackPlayer.name : game.whitePlayer.name;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const accounts = await tx.account.findMany({
+        where: {
+          username: { in: [winnerUsername, loserUsername] },
+        },
+        select: {
+          id: true,
+          username: true,
+          score: {
+            select: {
+              rating: true,
+              wins: true,
+              losses: true,
+            },
+          },
+        },
+      });
+
+      const winner = accounts.find((account) => account.username === winnerUsername);
+      const loser = accounts.find((account) => account.username === loserUsername);
+
+      if (!winner || !loser) {
+        throw new Error("Winner or loser account not found while persisting game result.");
+      }
+
+      const winnerRating = (winner.score?.rating ?? 0) + SCORE_DELTA;
+      const winnerWins = (winner.score?.wins ?? 0) + 1;
+      const winnerLosses = winner.score?.losses ?? 0;
+
+      const loserRating = calculateLoserRating(loser.score?.rating ?? 0);
+      const loserWins = loser.score?.wins ?? 0;
+      const loserLosses = (loser.score?.losses ?? 0) + 1;
+
+      await tx.score.upsert({
+        where: { accountId: winner.id },
+        create: {
+          accountId: winner.id,
+          rating: winnerRating,
+          wins: winnerWins,
+          losses: winnerLosses,
+        },
+        update: {
+          rating: winnerRating,
+          wins: winnerWins,
+          losses: winnerLosses,
+        },
+      });
+
+      await tx.score.upsert({
+        where: { accountId: loser.id },
+        create: {
+          accountId: loser.id,
+          rating: loserRating,
+          wins: loserWins,
+          losses: loserLosses,
+        },
+        update: {
+          rating: loserRating,
+          wins: loserWins,
+          losses: loserLosses,
+        },
+      });
+    });
+
+    game.resultPersisted = true;
+  } catch (error) {
+    console.error("[Chess] Failed to persist game result:", error);
+  }
 };
 
 export function registerMatchmakingNamespace(io) {
@@ -161,12 +294,30 @@ export function registerMatchmakingNamespace(io) {
 
 export function registerChessNamespace(io) {
   const chessNamespace = io.of(CHESS_NAMESPACE);
+  const playerConnections = new Map(); // Track player connections by playerToken
 
   chessNamespace.on("connection", (socket) => {
-    const gameId = typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "";
-    const playerId = typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "";
-    const playerToken = typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "";
-    const username = sanitizeUsername(socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
+    // Try to get from auth first (new method), fallback to query (old method)
+    const gameId = socket.handshake.auth?.gameId || (typeof socket.handshake.query.gameId === "string" ? socket.handshake.query.gameId : "");
+    const playerId = socket.handshake.auth?.playerId || (typeof socket.handshake.query.playerId === "string" ? socket.handshake.query.playerId : "");
+    const playerToken = socket.handshake.auth?.playerToken || (typeof socket.handshake.query.playerToken === "string" ? socket.handshake.query.playerToken : "");
+    const username = sanitizeUsername(socket.handshake.auth?.username || socket.handshake.query.username, `Player-${socket.id.slice(0, 4)}`);
+
+    console.log("[Chess] New connection", { socketId: socket.id, gameId, playerId, playerToken, username });
+
+    // If this player already has a connection, disconnect the old one
+    if (playerToken && playerConnections.has(playerToken)) {
+      const oldSocketId = playerConnections.get(playerToken);
+      const oldSocket = chessNamespace.sockets.get(oldSocketId);
+      if (oldSocket) {
+        oldSocket.disconnect();
+      }
+    }
+
+    // Store this connection
+    if (playerToken) {
+      playerConnections.set(playerToken, socket.id);
+    }
 
     socket.data.gameId = gameId;
     socket.data.playerId = playerId;
@@ -175,6 +326,14 @@ export function registerChessNamespace(io) {
     socket.data.playerColor = null;
 
     socket.on("join-game", () => {
+      console.log("[Chess] Received join-game from", socket.id, "with gameId:", gameId);
+      
+      // Validate that we have required parameters
+      if (!gameId || !playerId || !playerToken) {
+        socket.emit("game-error", { error: "Missing required game parameters." });
+        return;
+      }
+
       const game = chessGames.get(gameId);
       const resolvedPlayer = resolvePlayerFromGame(game, playerId, playerToken);
 
@@ -186,12 +345,46 @@ export function registerChessNamespace(io) {
       socket.data.playerColor = resolvedPlayer.color;
       socket.join(gameId);
       socket.emit("game-state", serializeGameForPlayer(game, resolvedPlayer.color));
+      socket.emit("game-chat-sync", {
+        connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+        recentMessages: game.chatMessages,
+      });
       chessNamespace.to(gameId).emit("player-joined", {
         players: [game.whitePlayer.name, game.blackPlayer.name],
       });
+      chessNamespace.to(gameId).emit("game-chat-presence", {
+        connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+      });
     });
 
-    socket.on("sync-game-state", (payload, acknowledge) => {
+    socket.on("game-chat-message", (payload, acknowledge) => {
+      const game = chessGames.get(gameId);
+
+      if (!game || !socket.data.playerColor || !socket.rooms.has(gameId)) {
+        acknowledge?.({ ok: false, error: "Unauthorized chat session." });
+        return;
+      }
+
+      const text = trimText(payload?.text, 500);
+      if (!text) {
+        acknowledge?.({ ok: false, error: "Empty message." });
+        return;
+      }
+
+      const senderName = socket.data.playerColor === "w" ? game.whitePlayer.name : game.blackPlayer.name;
+      const message = {
+        id: crypto.randomUUID(),
+        username: senderName,
+        text,
+        sentAt: new Date().toISOString(),
+      };
+
+      pushGameChatMessage(game, message);
+      chessNamespace.to(gameId).emit("game-chat-message", message);
+      acknowledge?.({ ok: true });
+    });
+
+    socket.on("sync-game-state", async (payload, acknowledge) => {
       const game = chessGames.get(gameId);
 
       if (!game || !socket.data.playerColor) {
@@ -217,10 +410,16 @@ export function registerChessNamespace(io) {
       };
 
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+
+      if (isFinishedStatus(game.boardState.status)) {
+        await persistGameResult(game);
+      }
+
       acknowledge?.({ ok: true });
     });
 
-    socket.on("resign-game", () => {
+    socket.on("resign-game", async () => {
+      // Mark the game as finished and announce the winner when a player resigns.
       const game = chessGames.get(gameId);
 
       if (!game || !socket.data.playerColor) {
@@ -234,6 +433,21 @@ export function registerChessNamespace(io) {
       };
 
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
+
+      await persistGameResult(game);
+    });
+
+    socket.on("disconnect", () => {
+      // Clean up the player connection mapping
+      if (playerToken) {
+        playerConnections.delete(playerToken);
+      }
+
+      if (gameId) {
+        chessNamespace.to(gameId).emit("game-chat-presence", {
+          connectedPlayers: getConnectedPlayersInGame(chessNamespace, gameId),
+        });
+      }
     });
   });
 
