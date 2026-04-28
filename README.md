@@ -85,20 +85,21 @@ And that's all we need to get started!
 #### Web
 
 * **Major (+2)** - Full-stack framework (Next.js)
-* **Major (+2)** - Real-time features using WebSockets
+* **Major (+2)** - Real-time features using WebSockets (Real-time 1v1 Matches)
 * **Major (+2)** - Allow users to interact with other users (Chat system, User profiles, Friends List)
 * **Minor (+1)** - Use an ORM for the Database (Prisma)
-* **Minor (+1)** - Custom-made design system with reusable components (Frontend)
+* **Minor (+1)** - Custom-made design system with 10+ reusable components (Frontend)
     - *Reusable elements*
         - Frontend Environment
         - Game Board
-        - 6 pieces (King, Queen, Pawn, Rook, Knight, Bishop)
+        - 6 white pieces (King, Queen, Pawn, Rook, Knight, Bishop)
+        - 6 black pieces (King, Queen, Pawn, Rook, Knight, Bishop)
 
 *TOTAL: 8 points*
 
 #### Accessibility and Internationalization
 
-* **Minor (+1)** - Support for additional browsers (Chrome, Firefox)
+* **Minor (+1)** - Support for additional browsers (Firefox, Chrome, Edge)
 
 *TOTAL: 1 point*
 
