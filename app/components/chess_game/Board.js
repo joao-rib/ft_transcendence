@@ -1,77 +1,34 @@
+import { getCharacter } from '../../helper'
 import './Board.css'
-import { useAppContext } from '@/app/contexts/Context'
-
-import Ranks from './bits/Ranks'
 import Files from './bits/Files'
-import Pieces from './Pieces/Pieces'
-import PromotionBox from '../chess_game/Popup/PromotionBox/PromotionBox'
-import Popup from '../chess_game/Popup/Popup'
-import GameEnds from '../chess_game/Popup/GameEnds/GameEnds'
-
-import arbiter from './arbiter/arbiter'
-import { getKingPosition } from './arbiter/getMoves'
+import Ranks from './bits/Ranks'
 
 const Board = () => {
-  const ranks = Array(8).fill().map((x, i) => 8 - i)
-  const files = Array(8).fill().map((x, i) => i + 1)
 
-  const { appState } = useAppContext()
-  const position = appState.position[appState.position.length - 1]
+	const getClassName = (i,j) => {
+		let c = 'tile'
+		c+= (i+j) % 2 === 0 ? ' tile--dark' : ' tile--light'
+		return c
+	}
+	
+	const ranks = Array(8).fill().map((x,i) => 8 - i)
+	const files = Array(8).fill().map((x,i) => i + 1)
 
-  const checkTile = (() => {
-    const isInCheck = arbiter.isPlayerInCheck({
-      positionAfterMove: position,
-      player: appState.turn,
-    })
+	return <div className='board'>
 
-    if (isInCheck) {
-      return getKingPosition(position, appState.turn)
-    }
 
-    return null
-  })()
+		<Ranks ranks={ranks}/>
 
-  const getClassName = (i, j) => {
-    let c = 'tile'
-    c += (i + j) % 2 === 0 ? ' tile--dark ' : ' tile--light '
+		<div className='tiles'>
+			{ranks.map((rank,i) =>
+				files.map((file,j) =>
+					<div key={file+'-'+rank} className={getClassName(9 - i,j)}></div>
+				)
+			)}
+		</div>
 
-    if (appState.candidateMoves?.find((m) => m[0] === i && m[1] === j)) {
-      if (position[i][j]) {
-        c += ' attacking'
-      } else {
-        c += ' highlight'
-      }
-    }
-
-    if (checkTile && checkTile[0] === i && checkTile[1] === j) {
-      c += ' checked'
-    }
-
-    return c
-  }
-
-  return (
-    <div className='board'>
-      <Ranks ranks={ranks} />
-
-      <div className='tiles'>
-        {ranks.map((rank, i) =>
-          files.map((file, j) => (
-            <div key={file + '' + rank} className={`${getClassName(7 - i, j)}`}></div>
-          ))
-        )}
-      </div>
-
-      <Pieces />
-
-      <Popup>
-        <PromotionBox />
-        <GameEnds />
-      </Popup>
-
-      <Files files={files} />
-    </div>
-  )
+		<Files files={files}/>
+	</div>
 }
 
 export default Board

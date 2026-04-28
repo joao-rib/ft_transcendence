@@ -14,8 +14,6 @@ export default function Home() {
   const {
     loginOpen,
     signupOpen,
-    isLoading,
-    error,
     handleLogin,
     handleSignup,
     openLogin,
@@ -39,8 +37,6 @@ export default function Home() {
         onClose={closeLogin}
         onSubmit={handleLogin}
         onSwitchToSignup={switchToSignup}
-        isLoading={isLoading}
-        error={error}
       />
 
       <SignupModal
@@ -48,8 +44,6 @@ export default function Home() {
         onClose={closeSignup}
         onSubmit={handleSignup}
         onSwitchToLogin={switchToLogin}
-        isLoading={isLoading}
-        error={error}
       />
 
       <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-8 py-20">

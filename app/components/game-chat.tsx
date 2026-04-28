@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useRef, useState } from "react";
-import { GameMessage } from "./useChessSocket";
+import { GameMessage } from "../game/useChessSocket";
 
 interface GameChatProps {
   messages: GameMessage[];
@@ -27,7 +27,7 @@ export default function GameChat({
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to newly added messages.
+  // Auto-scroll para as mensagens novas
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -64,7 +64,7 @@ export default function GameChat({
         <h3 className="font-semibold text-sm">Game Chat</h3>
       </div>
 
-      {/* Messages */}
+      {/* Mensagens */}
       <div className="flex-1 min-h-64 space-y-2 overflow-y-auto p-3 max-h-96">
         {messages.length === 0 && (
           <p className="text-sm text-foreground/70">No messages in this game yet.</p>

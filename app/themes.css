@@ -50,13 +50,14 @@
   /* Grid pattern */
   --grid-color: rgba(255, 255, 255, 0.1);
   --grid-opacity: 0.03;
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
 }
 
 /* Alternative Theme - Blue Ocean (example for future use) */
 [data-theme="ocean"] {
   /* Background gradients */
+  /*--bg-primary: #0c4a6e; /* sky-900 */
+  /*--bg-secondary: #082f49; /* sky-950 */
+  /*--bg-accent: #0c4a6e; /* sky-900 */
   
   /* Background gradients */
   --bg-primary: #0f172a; /* slate-900 */
@@ -107,13 +108,14 @@
   /* Grid pattern */
   --grid-color: rgba(255, 255, 255, 0.1);
   --grid-opacity: 0.03;
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
 }
 
 /* Alternative Theme - Purple Night (example for future use) */
 [data-theme="purple"] {
   /* Background gradients */
+  /*--bg-primary: #581c87; /* purple-900 */
+  /*--bg-secondary: #3b0764; /* purple-950 */
+  /*--bg-accent: #581c87; /* purple-900 */
   
   /* Background gradients */
   --bg-primary: #0f172a; /* slate-900 */
@@ -163,6 +165,4 @@
   /* Grid pattern */
   --grid-color: rgba(255, 255, 255, 0.1);
   --grid-opacity: 0.03;
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
 }

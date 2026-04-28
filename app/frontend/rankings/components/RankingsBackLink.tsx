@@ -1,24 +1,10 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function RankingsBackLink() {
-	const router = useRouter();
-
-	const handleBack = () => {
-		if (window.history.length > 1) {
-			router.back();
-			return;
-		}
-
-		router.push("/game/lobby");
-	};
-
 	return (
-		<button
-			type="button"
+		<Link
+			href="/"
 			className="fixed top-8 left-8 z-20 transition-colors hover:opacity-80 flex items-center gap-2 text-lg"
-			onClick={handleBack}
 			style={{ color: "var(--text-accent)" }}
 		>
 			<span className="inline-flex h-5 w-5 items-center justify-center" aria-hidden="true">
@@ -26,7 +12,7 @@ export default function RankingsBackLink() {
 					<path d="M15 18l-6-6 6-6" />
 				</svg>
 			</span>
-			<span className="leading-normal">Back</span>
-		</button>
+			<span className="leading-normal">Back to Home</span>
+		</Link>
 	);
 }

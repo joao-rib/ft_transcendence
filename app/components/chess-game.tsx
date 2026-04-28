@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Board from "@/app/components/chess_game/Board";
+import Board from "./chess_game/Board";
 import GameChat from "./game-chat";
-import { useChessSocket } from "./useChessSocket";
+import { useChessSocket } from "../game/useChessSocket";
 
 interface ChessGameProps {
   gameId: string;

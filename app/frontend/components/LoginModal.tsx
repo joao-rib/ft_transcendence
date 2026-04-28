@@ -5,11 +5,9 @@ interface LoginModalProps {
 	onClose: () => void;
 	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 	onSwitchToSignup: () => void;
-	isLoading?: boolean;
-	error?: string | null;
 }
 
-export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup, isLoading = false, error = null }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup}: LoginModalProps) {
 	if (!isOpen) return null;
 
 	return (
@@ -47,8 +45,7 @@ export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup
 								type="email"
 								required
 								placeholder="your@email.com"
-								disabled={isLoading}
-								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors disabled:opacity-50"
+								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors"
 								style={{
 									backgroundColor: "var(--overlay-light)",
 									borderColor: "var(--border-primary)",
@@ -67,8 +64,7 @@ export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup
 								type="password"
 								required
 								placeholder="••••••••"
-								disabled={isLoading}
-								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors disabled:opacity-50"
+								className="w-full px-4 py-3 border rounded-xl focus:outline-none transition-colors"
 								style={{
 									backgroundColor: "var(--overlay-light)",
 									borderColor: "var(--border-primary)",
@@ -77,22 +73,15 @@ export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup
 							/>
 						</div>
 						
-						{error && (
-							<div className="p-3 rounded-lg text-sm" style={{ backgroundColor: "rgba(255, 0, 0, 0.1)", color: "#ff6b6b" }}>
-								{error}
-							</div>
-						)}
-						
 						<button
 							type="submit"
-							disabled={isLoading}
-							className="w-full font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-95 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="w-full font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] active:scale-95 mt-6"
 							style={{
 								background: "linear-gradient(to right, var(--avatar-mid), var(--avatar-end))",
 								color: "var(--bg-primary)",
 							}}
 						>
-							{isLoading ? "Signing in..." : "Sign In"}
+							Sign In
 						</button>
 					</form>
 					<div className="mt-6 text-center">

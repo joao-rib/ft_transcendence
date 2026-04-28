@@ -1,15 +1,7 @@
-/**
- * Lobby background layer.
- *
- * This component:
- * 1. Draws the base gradient using shared theme variables.
- * 2. Adds a subtle grid overlay for depth.
- * 3. Uses no props because it depends only on global CSS variables.
- */
 export default function GameBackground() {
 	return (
 		<>
-			{/* Base gradient background */}
+			{/* Background */}
 			<div
 				className="absolute inset-0"
 				style={{
@@ -17,7 +9,7 @@ export default function GameBackground() {
 				}}
 			></div>
 
-			{/* Subtle grid overlay */}
+			{/* Subtle grid pattern */}
 			<div
 				className="absolute inset-0"
 				style={{
