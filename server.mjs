@@ -1,7 +1,6 @@
 import http from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import { registerRealtimeChat } from "./socket-handlers/chat.mjs";
 import { registerChessNamespace, registerMatchmakingNamespace } from "./socket-handlers/chess.mjs";
 
 const port = Number.parseInt(process.env.PORT ?? "3000", 10);
@@ -22,7 +21,6 @@ app
       },
     });
 
-    registerRealtimeChat(io);
     registerChessNamespace(io);
     registerMatchmakingNamespace(io);
 

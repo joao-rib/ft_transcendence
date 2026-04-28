@@ -5,6 +5,7 @@ interface LeaderboardEntry {
 	losses: number;
 	rating: number;
 	winRate: number;
+	isCurrentUser?: boolean;
 }
 
 export default function RankingsTable({ leaderboard }: { leaderboard: LeaderboardEntry[] }) {
@@ -44,6 +45,7 @@ export default function RankingsTable({ leaderboard }: { leaderboard: Leaderboar
 						<tr
 							key={entry.rank}
 							style={{
+								backgroundColor: entry.isCurrentUser ? "rgba(34, 197, 94, 0.08)" : "transparent",
 								borderBottomColor: "var(--border-secondary)",
 								borderBottomWidth: index < leaderboard.length - 1 ? "1px" : "0px",
 							}}
@@ -60,7 +62,17 @@ export default function RankingsTable({ leaderboard }: { leaderboard: Leaderboar
 								className="px-6 py-4"
 								style={{ color: "var(--text-primary)" }}
 							>
-								{entry.username}
+								<span className="inline-flex items-center gap-2">
+									{entry.username}
+									{entry.isCurrentUser ? (
+										<span
+											className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+											style={{ backgroundColor: "var(--overlay-medium)", color: "var(--text-accent)" }}
+										>
+											You
+										</span>
+									) : null}
+								</span>
 							</td>
 							<td
 								className="px-6 py-4 text-center font-semibold"

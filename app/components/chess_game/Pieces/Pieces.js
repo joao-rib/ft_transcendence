@@ -2,11 +2,12 @@
 
 import './Pieces.css'
 import Piece from './Piece'
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppContext } from '@/app/contexts/Context'
 import { openPromotion } from '../reducer/actions/popup'
 import { getCastlingDirections } from "../arbiter/getMoves"
 import { updateCastling, detectStalemate, detectInsufficientMaterial, detectCheckmate } from "../reducer/actions/game"
+import { BOARD_THEME_CHANGE_EVENT, getStoredBoardTheme } from '../../../frontend/game/utils/boardTheme'
 
 import { makeNewMove, clearCandidates } from '../reducer/actions/move'
 import arbiter from '../arbiter/arbiter'
@@ -17,8 +18,29 @@ const Pieces = () => {
 
     const { appState , dispatch } = useAppContext();
     const currentPosition = appState.position[appState.position.length-1]
+    const [boardTheme, setBoardTheme] = useState('default')
 
     const ref = useRef()
+
+    useEffect(() => {
+        const storedTheme = getStoredBoardTheme()
+        setBoardTheme(storedTheme)
+
+        const onThemeChange = event => {
+            const nextTheme = event?.detail
+            if (nextTheme === 'classic' || nextTheme === 'bluish') {
+                setBoardTheme(nextTheme)
+                return
+            }
+            setBoardTheme('default')
+        }
+
+        window.addEventListener(BOARD_THEME_CHANGE_EVENT, onThemeChange)
+
+        return () => {
+            window.removeEventListener(BOARD_THEME_CHANGE_EVENT, onThemeChange)
+        }
+    }, [])
 
     const updateCastlingState = ({piece,file,rank}) => {
         const direction = getCastlingDirections({
@@ -101,7 +123,7 @@ const Pieces = () => {
     const onDragOver = e => {e.preventDefault()}
 
     return <div 
-        className='pieces' 
+        className={`pieces pieces--${boardTheme}`} 
         ref={ref} 
         onDrop={onDrop} 
         onDragOver={onDragOver} > 
