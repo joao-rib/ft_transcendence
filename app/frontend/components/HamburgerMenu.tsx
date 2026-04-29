@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import ThemeSwitcher from "./ThemeSwitcher";
+
+const RULES_RETURN_TO_STORAGE_KEY = "ft-transcendence-rules-return-to";
 
 interface HamburgerMenuProps {
 	isOpen: boolean;
@@ -15,6 +18,14 @@ export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: Hamb
 	const queryString = searchParams.toString();
 	const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
 	const rulesHref = `/frontend/rules?returnTo=${encodeURIComponent(returnTo)}`;
+
+	const handleRulesClick = () => {
+		if (typeof window === "undefined") {
+			return;
+		}
+
+		window.sessionStorage.setItem(RULES_RETURN_TO_STORAGE_KEY, returnTo);
+	};
 
 	return (
 		<>
@@ -43,12 +54,13 @@ export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: Hamb
 					}}
 				>
 					<nav className="space-y-2">
-						<a
+						<Link
 							href={rulesHref}
+							onClick={handleRulesClick}
 							className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]"
 						>
 							Rules
-						</a>
+						</Link>
 						<button
 							type="button"
 							onClick={onOpenSettings}

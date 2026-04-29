@@ -4,7 +4,6 @@ import LoginModal from "./LoginModal";
 import SignupModal from "./SignupModal";
 import Background from "./Background";
 import AuthCard from "./AuthCard";
-import HomeFeatureCards from "./HomeFeatureCards";
 import HomeFooterLinks from "./HomeFooterLinks";
 import HomeHero from "./HomeHero";
 import { useHomePageController } from "../hooks/useHomePageController";
@@ -56,7 +55,6 @@ export default function Home() {
         <div className="mx-auto w-full max-w-2xl space-y-12">
           <HomeHero />
           <AuthCard onLoginClick={openLogin} onSignupClick={openSignup} />
-          <HomeFeatureCards />
           <HomeFooterLinks />
         </div>
       </main>
