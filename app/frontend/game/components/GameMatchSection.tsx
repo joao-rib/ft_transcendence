@@ -7,7 +7,7 @@ interface GameMatchSectionProps {
 
 export default function GameMatchSection({ isSearching, matchStatus, onRankings, onStartGame }: GameMatchSectionProps) {
   return (
-    <main className="flex flex-1 items-center justify-center p-12">
+    <main className="flex flex-col flex-1 items-center justify-center p-12">
       <div className="w-full max-w-2xl space-y-8">
         <h1
           className="mb-12 bg-clip-text text-center text-5xl font-bold text-transparent"

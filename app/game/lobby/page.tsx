@@ -1,29 +1,89 @@
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+"use client";
 
-import authOptions from "@/app/api/auth/[...nextauth]/route";
-import LobbyPageClient from "./LobbyPageClient";
+import GameBackground from "../../frontend/game/components/GameBackground";
+import GameFriendsPanel from "../../frontend/game/components/GameFriendsPanel";
+import GameMatchSection from "../../frontend/game/components/GameMatchSection";
+import GamePlayerSidebar from "../../frontend/game/components/GamePlayerSidebar";
+import GameSettingsPanel from "../../frontend/game/components/GameSettingsPanel";
+import { useGameController } from "../../frontend/game/hooks/useGameController";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter: adapter as any });
+/**
+ * Lobby page.
+ *
+ * This page:
+ * 1. Gets state and handlers from useGameController.
+ * 2. Passes player data into GamePlayerSidebar.
+ * 3. Keeps profile and action sections separated in the layout.
+ */
+export default function GamePage() {
+  const {
+    boardTheme,
+    closeFriends,
+    closeSettings,
+    friends,
+    friendSearchMessage,
+    friendSearchQuery,
+    friendSearchResults,
+    handleAddFriend,
+    handleFriendSearch,
+    handleBoardThemeChange,
+    playerName,
+    playerStats,
+    handleDisconnect,
+    handleFriends,
+    handleSettings,
+    handleRankings,
+    handleStartGame,
+    isFriendsOpen,
+    isFriendsLoading,
+    isSearching,
+    isSettingsOpen,
+    matchStatus,
+    setFriendSearchQuery,
+  } = useGameController();
 
-export default async function LobbyPage() {
-  const session = await getServerSession(authOptions);
+  return (
+    <div className="relative min-h-screen overflow-hidden font-sans">
+      <GameBackground />
 
-  if (!session?.user?.id) {
-    redirect("/");
-  }
+      <div className="relative z-10 flex min-h-screen">
+        <GamePlayerSidebar
+          playerName={playerName}
+          rating={playerStats.rating}
+          wins={playerStats.wins}
+          losses={playerStats.losses}
+          onFriends={handleFriends}
+          onSettings={handleSettings}
+          onDisconnect={handleDisconnect}
+        />
 
-  const account = await prisma.account.findUnique({
-    where: { id: session.user.id },
-    select: { onlineStatus: true },
-  });
-
-  if (!account || account.onlineStatus !== "ONLINE") {
-    redirect("/");
-  }
-
-  return <LobbyPageClient />;
+        <div className="relative flex flex-col flex-1">
+          <GameMatchSection
+            isSearching={isSearching}
+            matchStatus={matchStatus}
+            onRankings={handleRankings}
+            onStartGame={handleStartGame}
+          />
+          <GameFriendsPanel
+            isOpen={isFriendsOpen}
+            friends={friends}
+            friendSearchMessage={friendSearchMessage}
+            friendSearchQuery={friendSearchQuery}
+            friendSearchResults={friendSearchResults}
+            isLoading={isFriendsLoading}
+            onAddFriend={handleAddFriend}
+            onClose={closeFriends}
+            onFind={handleFriendSearch}
+            onQueryChange={setFriendSearchQuery}
+          />
+          <GameSettingsPanel
+            isOpen={isSettingsOpen}
+            boardTheme={boardTheme}
+            onBoardThemeChange={handleBoardThemeChange}
+            onClose={closeSettings}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
