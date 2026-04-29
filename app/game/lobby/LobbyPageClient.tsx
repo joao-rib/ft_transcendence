@@ -57,7 +57,7 @@ export default function GamePage() {
           onDisconnect={handleDisconnect}
         />
 
-        <div className="relative flex flex-col flex-1">
+        <div className="relative flex-1">
           <GameMatchSection
             isSearching={isSearching}
             matchStatus={matchStatus}
@@ -87,3 +87,4 @@ export default function GamePage() {
     </div>
   );
 }
+

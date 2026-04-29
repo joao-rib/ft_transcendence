@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 interface HamburgerMenuProps {
@@ -9,6 +10,12 @@ interface HamburgerMenuProps {
 }
 
 export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: HamburgerMenuProps) {
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const queryString = searchParams.toString();
+	const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+	const rulesHref = `/frontend/rules?returnTo=${encodeURIComponent(returnTo)}`;
+
 	return (
 		<>
 			<button
@@ -37,7 +44,7 @@ export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: Hamb
 				>
 					<nav className="space-y-2">
 						<a
-							href="/frontend/rules"
+							href={rulesHref}
 							className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]"
 						>
 							Rules
