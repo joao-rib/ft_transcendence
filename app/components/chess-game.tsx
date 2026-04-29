@@ -17,38 +17,9 @@ export default function ChessGame({ gameId, username }: ChessGameProps) {
     error,
     players,
     gameMessages,
-    makeMove,
     sendGameMessage,
     resignFromGame,
   } = useChessSocket(gameId, username);
-
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
-
-  // Função para lidar com cliques no tabuleiro
-  const handleSquareClick = (square: string) => {
-    if (status !== "connected" || !gameState) {
-      return;
-    }
-
-    // Se nenhuma casa estava selecionada, seleciona essa
-    if (!selectedSquare) {
-      setSelectedSquare(square);
-      return;
-    }
-
-    // Se clicou na mesma casa, deseleciona
-    if (selectedSquare === square) {
-      setSelectedSquare(null);
-      return;
-    }
-
-    // Tenta fazer o movimento
-    makeMove(selectedSquare, square, (ack) => {
-      if (ack.ok) {
-        setSelectedSquare(null);
-      }
-    });
-  };
 
   return (
     <main className="mx-auto w-full max-w-7xl px-6 py-10">

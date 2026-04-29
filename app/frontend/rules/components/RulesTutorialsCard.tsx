@@ -1,7 +1,16 @@
 const tutorials = [
-	"Chess Basics and Piece Movement",
-	"Openings, Tactics, and Midgame Ideas",
-	"Endgames and Checkmate Patterns",
+	{
+		title: "Chess Basics and Piece Movement",
+		embedUrl: "https://www.youtube.com/embed/ej_fnsdsksA",
+	},
+	{
+		title: "Openings, Tactics, and Midgame Ideas",
+		embedUrl: "https://www.youtube.com/embed/Tt8VTZFPFa4",
+	},
+	{
+		title: "Endgames and Checkmate Patterns",
+		embedUrl: "https://www.youtube.com/embed/uu7ISsU-Ufw",
+	},
 ];
 
 export default function RulesTutorialsCard() {
@@ -17,9 +26,9 @@ export default function RulesTutorialsCard() {
 				Video Tutorials
 			</h2>
 			<div className="space-y-6">
-				{tutorials.map((title) => (
+				{tutorials.map((tutorial) => (
 					<div
-						key={title}
+						key={tutorial.title}
 						className="border rounded-xl p-8"
 						style={{
 							backgroundColor: "var(--overlay-light)",
@@ -27,18 +36,23 @@ export default function RulesTutorialsCard() {
 						}}
 					>
 						<h3 className="text-xl font-semibold mb-4" style={{ color: "var(--text-secondary)" }}>
-							{title}
+							{tutorial.title}
 						</h3>
 						<div
-							className="aspect-video rounded-lg flex items-center justify-center border-2 border-dashed"
+							className="aspect-video rounded-lg overflow-hidden border"
 							style={{
 								backgroundColor: "var(--overlay-medium)",
 								borderColor: "var(--border-secondary)",
 							}}
 						>
-							<p className="text-center" style={{ color: "var(--text-muted)" }}>
-								Video tutorial coming soon...
-							</p>
+							<iframe
+								className="h-full w-full"
+								src={tutorial.embedUrl}
+								title={tutorial.title}
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								referrerPolicy="strict-origin-when-cross-origin"
+								allowFullScreen
+							/>
 						</div>
 					</div>
 				))}

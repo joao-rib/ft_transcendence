@@ -26,14 +26,18 @@ model Account {
   createdAt     DateTime @default(now()) // Default value generator. Records current timestamp
   updatedAt     DateTime @updatedAt // Records timestamp for most recent change
 
-  oauthAccounts OAuthAccount[] // Number of OAuth accounts
+  avatarUrl     String?   // Nullable
+  onlineStatus   OnlineStatus @default(OFFLINE)
+  score         Score?
+
+  friendshipsAsUserA Friendship[] @relation("FriendshipUserA")
+  friendshipsAsUserB Friendship[] @relation("FriendshipUserB")
   refreshTokens RefreshToken[]
 }
 
-enum OAuthProvider {
-  google
-  github
-  apple
+enum OnlineStatus {
+  ONLINE
+  OFFLINE
 }
 
 model OAuthAccount {
@@ -47,6 +51,21 @@ model OAuthAccount {
   @@unique([provider, providerAccountId]) // Combination of fields must be unique
 }
 
+<<<<<<< HEAD
+=======
+model Friendship {
+  id        String   @id @default(uuid())
+  userA     Account  @relation("FriendshipUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userAId   String
+  userB     Account  @relation("FriendshipUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  userBId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+}
+
+>>>>>>> main
 model RefreshToken {
   id         String   @id @default(uuid())  // Unique key. Default value generator. Universally unique identifier.
   tokenHash  String   @unique               // Must be unique

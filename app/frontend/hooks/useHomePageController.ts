@@ -9,8 +9,80 @@ export function useHomePageController() {
 	const [loginOpen, setLoginOpen] = useState(false);
 	const [signupOpen, setSignupOpen] = useState(false);
 
-	const persistLocalSession = (username: string) => {
-		if (typeof window === "undefined") {
+	/**
+	 * Handle login: uses NextAuth signIn with Credentials provider
+	 * - Extracts email/password from form
+	 * - Calls NextAuth signIn() which validates against database
+	 * - If valid, creates JWT session stored in HTTP-only cookie
+	 * - Errors are caught and displayed to user
+	 */
+	const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setIsLoading(true);
+		setError(null);
+
+		const formData = new FormData(e.currentTarget);
+		const email = String(formData.get("email"));
+		const password = String(formData.get("password"));
+
+		try {
+			const result = await signIn("credentials", {
+				email,
+				password,
+				redirect: false, // We'll handle redirect manually
+			});
+
+			console.log("[handleLogin] signIn result:", result);
+
+			if (!result?.ok) {
+				const providerError = result?.error ?? "CredentialsSignin";
+				const errorMessage = providerError === "CredentialsSignin"
+					? "Invalid email or password"
+					: providerError;
+				setError(errorMessage);
+				console.error("[handleLogin] Login failed:", result?.error);
+				return;
+			}
+
+			console.log("[handleLogin] Login successful, about to redirect");
+			// Redirect to lobby after successful login (do this BEFORE closing modal to avoid form element issues)
+			console.log("[handleLogin] Calling router.push('/game/lobby')");
+			router.push("/game/lobby");
+			
+			// Close modal after redirect is initiated
+			setLoginOpen(false);
+			console.log("[handleLogin] router.push() called");
+		} catch (err) {
+			const fallbackError = err instanceof Error && err.message.includes("NetworkError")
+				? "Invalid email or password."
+				: "An error occurred during login";
+			setError(fallbackError);
+			console.error("[handleLogin] Error:", err);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	/**
+	 * Handle signup: calls Server Action registerUser, then auto-signs in
+	 * - Calls Server Action to hash password + create user + initialize scores
+	 * - If successful, automatically signs in the new user
+	 * - Validates input before sending
+	 */
+	const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setIsLoading(true);
+		setError(null);
+
+		const formData = new FormData(e.currentTarget);
+		const username = String(formData.get("username"));
+		const email = String(formData.get("email"));
+		const password = String(formData.get("password"));
+
+		// Basic client-side validation
+		if (!username || !email || !password) {
+			setError("All fields are required");
+			setIsLoading(false);
 			return;
 		}
 

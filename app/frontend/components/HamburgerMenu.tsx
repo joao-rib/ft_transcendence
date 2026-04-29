@@ -5,16 +5,16 @@ import ThemeSwitcher from "./ThemeSwitcher";
 
 interface HamburgerMenuProps {
 	isOpen: boolean;
+	onOpenSettings: () => void;
 	onToggle: () => void;
 }
 
-export default function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) {
+export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: HamburgerMenuProps) {
 	return (
 		<>
-			{/* Hamburger Menu Button */}
-			<button 
+			<button
 				onClick={onToggle}
-				className="fixed top-6 right-6 z-50 p-3 rounded-lg hover:opacity-90 transition-all border"
+				className="fixed top-6 right-6 z-50 rounded-lg border p-3 transition-all hover:opacity-90"
 				style={{
 					backgroundColor: "var(--overlay-light)",
 					borderColor: "var(--border-secondary)",
@@ -22,16 +22,15 @@ export default function HamburgerMenu({ isOpen, onToggle }: HamburgerMenuProps) 
 				aria-label="Menu"
 			>
 				<div className="space-y-1.5">
-					<span className="block w-6 h-0.5 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
-					<span className="block w-6 h-0.5 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
-					<span className="block w-6 h-0.5 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
+					<span className="block h-0.5 w-6 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
+					<span className="block h-0.5 w-6 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
+					<span className="block h-0.5 w-6 rounded" style={{ backgroundColor: "var(--text-secondary)" }}></span>
 				</div>
 			</button>
 
-			{/* Menu Dropdown */}
 			{isOpen && (
 				<div
-					className="fixed top-20 right-6 z-40 backdrop-blur-xl border rounded-2xl shadow-2xl p-4 w-56 animate-in slide-in-from-top-5 fade-in duration-200"
+					className="fixed right-6 top-20 z-40 w-56 rounded-2xl border p-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-5 fade-in duration-200"
 					style={{
 						backgroundColor: "var(--bg-primary)",
 						borderColor: "var(--border-primary)",
