@@ -13,12 +13,15 @@ const DRAW_STATUSES = new Set([
 ]);
 const SCORE_DELTA = 7;
 const CHAT_MESSAGE_LIMIT = 50;
+const DISCONNECT_FORFEIT_TIMEOUT_MS = 60_000;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: adapter });
 
 const chessGames = new Map();
 const waitingPlayers = [];
+const activeGameSessionsByUsername = new Map();
+const disconnectForfeitTimersByToken = new Map();
 
 const createInitialBoardState = () => ({
   position: [[["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"], ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"], ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"]]],
@@ -54,6 +57,50 @@ const serializeGameForPlayer = (game, playerColor) => ({
   playerColor,
 });
 
+const isFinishedStatus = (status) => {
+  return status === WHITE_WIN_STATUS || status === BLACK_WIN_STATUS || DRAW_STATUSES.has(status);
+};
+
+const clearDisconnectForfeitTimer = (playerToken) => {
+  if (!playerToken) {
+    return;
+  }
+
+  const existingTimer = disconnectForfeitTimersByToken.get(playerToken);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+    disconnectForfeitTimersByToken.delete(playerToken);
+  }
+};
+
+const buildActiveSession = (game, color) => {
+  const player = color === "w" ? game.whitePlayer : game.blackPlayer;
+
+  return {
+    gameId: game.gameId,
+    playerId: player.id || player.token,
+    playerToken: player.token,
+    username: player.name,
+  };
+};
+
+const syncActiveGameSessions = (game) => {
+  if (!game) {
+    return;
+  }
+
+  if (isFinishedStatus(game.boardState?.status)) {
+    activeGameSessionsByUsername.delete(game.whitePlayer.name);
+    activeGameSessionsByUsername.delete(game.blackPlayer.name);
+    clearDisconnectForfeitTimer(game.whitePlayer.token);
+    clearDisconnectForfeitTimer(game.blackPlayer.token);
+    return;
+  }
+
+  activeGameSessionsByUsername.set(game.whitePlayer.name, buildActiveSession(game, "w"));
+  activeGameSessionsByUsername.set(game.blackPlayer.name, buildActiveSession(game, "b"));
+};
+
 const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
   const game = {
     gameId,
@@ -74,6 +121,7 @@ const createGame = ({ gameId, whitePlayer, blackPlayer }) => {
   };
 
   chessGames.set(gameId, game);
+  syncActiveGameSessions(game);
   return game;
 };
 
@@ -100,10 +148,6 @@ const resolvePlayerFromGame = (game, playerId, playerToken) => {
   }
 
   return null;
-};
-
-const isFinishedStatus = (status) => {
-  return status === WHITE_WIN_STATUS || status === BLACK_WIN_STATUS || DRAW_STATUSES.has(status);
 };
 
 const calculateLoserRating = (currentRating) => {
@@ -212,6 +256,65 @@ const persistGameResult = async (game) => {
   }
 };
 
+const popWaitingOpponent = (matchmakingNamespace) => {
+  while (waitingPlayers.length > 0) {
+    const candidate = waitingPlayers.shift();
+
+    if (!candidate) {
+      return null;
+    }
+
+    if (activeGameSessionsByUsername.has(candidate.username)) {
+      continue;
+    }
+
+    const opponentSocket = matchmakingNamespace.sockets.get(candidate.socketId);
+    if (!opponentSocket?.connected) {
+      continue;
+    }
+
+    return candidate;
+  }
+
+  return null;
+};
+
+const startDisconnectForfeitTimer = ({ chessNamespace, game, disconnectedColor }) => {
+  if (!game || !disconnectedColor || isFinishedStatus(game.boardState?.status)) {
+    return;
+  }
+
+  const disconnectedPlayer = disconnectedColor === "w" ? game.whitePlayer : game.blackPlayer;
+  const winnerStatus = disconnectedColor === "w" ? BLACK_WIN_STATUS : WHITE_WIN_STATUS;
+
+  clearDisconnectForfeitTimer(disconnectedPlayer.token);
+
+  const timer = setTimeout(async () => {
+    disconnectForfeitTimersByToken.delete(disconnectedPlayer.token);
+
+    if (isFinishedStatus(game.boardState?.status)) {
+      return;
+    }
+
+    game.boardState = {
+      ...game.boardState,
+      status: winnerStatus,
+      candidateMoves: [],
+    };
+
+    syncActiveGameSessions(game);
+    chessNamespace.to(game.gameId).emit("game-state", serializeGame(game));
+    chessNamespace.to(game.gameId).emit("game-ended-by-timeout", {
+      loser: disconnectedPlayer.name,
+      timeoutMs: DISCONNECT_FORFEIT_TIMEOUT_MS,
+    });
+
+    await persistGameResult(game);
+  }, DISCONNECT_FORFEIT_TIMEOUT_MS);
+
+  disconnectForfeitTimersByToken.set(disconnectedPlayer.token, timer);
+};
+
 export function registerMatchmakingNamespace(io) {
   const matchmakingNamespace = io.of(MATCHMAKING_NAMESPACE);
 
@@ -223,7 +326,13 @@ export function registerMatchmakingNamespace(io) {
       socket.data.username = username;
       socket.data.playerId = socket.id;
 
-      const waitingOpponent = waitingPlayers.shift();
+      const activeSession = activeGameSessionsByUsername.get(username);
+      if (activeSession) {
+        socket.emit("active-game", activeSession);
+        return;
+      }
+
+      const waitingOpponent = popWaitingOpponent(matchmakingNamespace);
 
       if (!waitingOpponent) {
         waitingPlayers.push({
@@ -327,7 +436,7 @@ export function registerChessNamespace(io) {
 
     socket.on("join-game", () => {
       console.log("[Chess] Received join-game from", socket.id, "with gameId:", gameId);
-      
+
       // Validate that we have required parameters
       if (!gameId || !playerId || !playerToken) {
         socket.emit("game-error", { error: "Missing required game parameters." });
@@ -341,6 +450,9 @@ export function registerChessNamespace(io) {
         socket.emit("game-error", { error: "Invalid game session." });
         return;
       }
+
+      clearDisconnectForfeitTimer(resolvedPlayer.player.token);
+      syncActiveGameSessions(game);
 
       socket.data.playerColor = resolvedPlayer.color;
       socket.join(gameId);
@@ -409,6 +521,7 @@ export function registerChessNamespace(io) {
         candidateMoves: [],
       };
 
+      syncActiveGameSessions(game);
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
 
       if (isFinishedStatus(game.boardState.status)) {
@@ -432,16 +545,29 @@ export function registerChessNamespace(io) {
         candidateMoves: [],
       };
 
+      syncActiveGameSessions(game);
       chessNamespace.to(gameId).emit("game-state", serializeGame(game));
 
       await persistGameResult(game);
     });
 
     socket.on("disconnect", () => {
-      // Only remove the mapping if this exact socket is still the active one.
-      // This avoids deleting a fresh reconnection mapped to the same token.
-      if (playerToken && playerConnections.get(playerToken) === socket.id) {
-        playerConnections.delete(playerToken);
+      // Ignore stale disconnects from sockets replaced during reconnect.
+      if (!playerToken || playerConnections.get(playerToken) !== socket.id) {
+        return;
+      }
+
+      playerConnections.delete(playerToken);
+
+      const game = chessGames.get(gameId);
+      const resolvedPlayer = resolvePlayerFromGame(game, playerId || "reconnect", playerToken);
+
+      if (game && resolvedPlayer && !isFinishedStatus(game.boardState?.status)) {
+        startDisconnectForfeitTimer({
+          chessNamespace,
+          game,
+          disconnectedColor: resolvedPlayer.color,
+        });
       }
 
       if (gameId) {

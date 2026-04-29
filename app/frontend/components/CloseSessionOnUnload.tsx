@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { clearOnlineGameSession } from "../game/utils/onlineGameSession";
 
 export default function CloseSessionOnUnload() {
   const hasSentCloseRequestRef = useRef(false);
@@ -13,7 +12,6 @@ export default function CloseSessionOnUnload() {
       }
 
       hasSentCloseRequestRef.current = true;
-      clearOnlineGameSession();
 
       void fetch("/api/auth/close-session", {
         method: "POST",
