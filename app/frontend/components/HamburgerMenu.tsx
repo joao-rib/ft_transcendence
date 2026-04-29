@@ -69,7 +69,7 @@ export default function HamburgerMenu({ isOpen, onOpenSettings, onToggle }: Hamb
 							Settings
 						</button>
 						<div className="my-2 border-t" style={{ borderColor: "var(--border-secondary)" }}></div>
-						<a href="#about" className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]">
+						<a href="https://github.com/joao-rib/ft_transcendence" target="_blank" rel="noreferrer" className="block rounded-lg px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--btn-primary-bg)]">
 							About
 						</a>
 						<div className="my-2 border-t pt-3" style={{ borderColor: "var(--border-secondary)" }}>

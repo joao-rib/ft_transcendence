@@ -14,24 +14,19 @@ export default function HomeFooterLinks() {
 		window.sessionStorage.setItem(RULES_RETURN_TO_STORAGE_KEY, "/");
 	};
 
-	return (
-		<div className="flex justify-center items-center gap-6 text-sm pt-4">
-			<Link
-				href="/frontend/rules?returnTo=%2F"
-				onClick={handleRulesClick}
-				className="transition-colors"
-				style={{ color: "var(--text-accent)" }}
-			>
-				Rules
-			</Link>
-			<span style={{ color: "var(--text-muted)" }}>•</span>
-			<a href="#privacy" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-				Privacy
-			</a>
-			<span style={{ color: "var(--text-muted)" }}>•</span>
-			<a href="#support" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-				Support
-			</a>
-		</div>
-	);
+  return (
+    <div className="flex items-center justify-center gap-6 pt-4 text-sm">
+      <Link href="/frontend/rules?returnTo=%2F"onClick={handleRulesClick}className="transition-colors"style={{ color: "var(--text-accent)" }}>
+        Rules
+      </Link>
+      <span style={{ color: "var(--text-muted)" }}>•</span>
+      <a href="/privacy" className="transition-colors" style={{ color: "var(--text-accent)" }}>
+        Privacy Policy
+      </a>
+      <span style={{ color: "var(--text-muted)" }}>•</span>
+      <a href="/support" className="transition-colors" style={{ color: "var(--text-accent)" }}>
+        Terms of Service
+      </a>
+    </div>
+  );
 }
