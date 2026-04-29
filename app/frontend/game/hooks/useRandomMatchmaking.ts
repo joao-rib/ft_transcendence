@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
+import { buildOnlineGameUrl, saveOnlineGameSession } from "../utils/onlineGameSession";
 
 const MATCHMAKING_NAMESPACE = "/matchmaking";
 
@@ -69,9 +70,8 @@ export function useRandomMatchmaking() {
       disconnectSocket();
       setIsSearching(false);
       setMatchStatus("");
-      router.push(
-        `/game?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}&playerToken=${encodeURIComponent(playerToken)}&username=${encodeURIComponent(username)}`,
-      );
+      saveOnlineGameSession({ gameId, playerId, playerToken, username });
+      router.push(buildOnlineGameUrl({ gameId, playerId, playerToken, username }));
     });
 
     socket.on("disconnect", () => {

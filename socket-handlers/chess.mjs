@@ -438,8 +438,9 @@ export function registerChessNamespace(io) {
     });
 
     socket.on("disconnect", () => {
-      // Clean up the player connection mapping
-      if (playerToken) {
+      // Only remove the mapping if this exact socket is still the active one.
+      // This avoids deleting a fresh reconnection mapped to the same token.
+      if (playerToken && playerConnections.get(playerToken) === socket.id) {
         playerConnections.delete(playerToken);
       }
 

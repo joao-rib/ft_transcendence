@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { buildOnlineGameUrl, getOnlineGameSession } from "../utils/onlineGameSession";
 import { useBoardThemeSettings } from "./useBoardThemeSettings";
 import { useRandomMatchmaking } from "./useRandomMatchmaking";
 
@@ -84,6 +85,13 @@ export function useGameController() {
   }, []);
 
   useEffect(() => {
+    const activeSession = getOnlineGameSession();
+
+    if (activeSession) {
+      router.replace(buildOnlineGameUrl(activeSession));
+      return;
+    }
+
     void updatePresence("ONLINE");
 
     const syncPresenceOnExit = () => {
@@ -105,7 +113,7 @@ export function useGameController() {
       window.removeEventListener("beforeunload", syncPresenceOnExit);
       document.removeEventListener("visibilitychange", syncPresenceOnVisible);
     };
-  }, [updatePresence]);
+  }, [router, updatePresence]);
 
   useEffect(() => {
     const loadLobbyPlayerData = async () => {

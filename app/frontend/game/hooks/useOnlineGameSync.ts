@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { syncGameState } from "@/app/components/chess_game/reducer/actions/game";
+import { clearOnlineGameSession } from "../utils/onlineGameSession";
 
 const CHESS_NAMESPACE = "/chess";
 
@@ -36,9 +37,12 @@ type GameChatAck = {
   error?: string;
 };
 
+const isFinishedGameStatus = (status: unknown) => {
+  return typeof status === "string" && status !== "" && status !== "Ongoing";
+};
+
 export function useOnlineGameSync({ appState, dispatch, gameId, playerId, playerToken, username }: UseOnlineGameSyncParams) {
   const socketRef = useRef<Socket | null>(null);
-  const latestBoardStateRef = useRef(appState);
   const hasHydratedFromServerRef = useRef(false);
   const lastSyncedMovesCountRef = useRef(0);
   const [playerColor, setPlayerColor] = useState<"w" | "b" | null>(null);
@@ -46,6 +50,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
   const [chatMessages, setChatMessages] = useState<GameChatMessage[]>([]);
   const [chatConnectedPlayers, setChatConnectedPlayers] = useState(0);
   const [chatStatus, setChatStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
+  const [gameError, setGameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!gameId || !playerId || !playerToken || !username) {
@@ -54,22 +59,27 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
 
     // Reset state for new game
     hasHydratedFromServerRef.current = false;
-
+    lastSyncedMovesCountRef.current = 0;
     const socket = io(getChessUrl(), {
       transports: ["websocket", "polling"],
-      reconnection: false, // Disable automatic reconnection; React will handle it
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 4000,
       auth: { gameId, playerId, playerToken, username },
-      timeout: 20000, // 20 second timeout
+      timeout: 20000,
     });
 
     socketRef.current = socket;
 
+    socket.io.on("reconnect_attempt", () => {
+      setChatStatus("connecting");
+    });
+
     socket.on("connect", () => {
       setChatStatus("connected");
-      // Small delay to ensure the server socket handlers are fully registered
-      setTimeout(() => {
-        socket.emit("join-game", { gameId, playerId, playerToken, username });
-      }, 100);
+      setGameError(null);
+      socket.emit("join-game", { gameId, playerId, playerToken, username });
     });
 
     socket.on("game-state", (payload: { playerColor?: "w" | "b"; boardState?: Record<string, unknown> }) => {
@@ -81,18 +91,29 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
         return;
       }
 
+      if (isFinishedGameStatus(payload.boardState.status)) {
+        clearOnlineGameSession();
+      }
+
       // Track how many moves the server has so we don't echo them back
       if (Array.isArray(payload.boardState.movesList)) {
         lastSyncedMovesCountRef.current = payload.boardState.movesList.length;
       }
 
-	  // Mark as hydrated on first game state and set ready
-  	if (!hasHydratedFromServerRef.current) {
-    	hasHydratedFromServerRef.current = true;
-    	setIsGameReady(true);
-  	}
+      if (!hasHydratedFromServerRef.current) {
+        hasHydratedFromServerRef.current = true;
+        setIsGameReady(true);
+      }
 
       dispatch(syncGameState(payload.boardState));
+    });
+
+    socket.on("game-error", (payload?: { error?: string }) => {
+      setGameError(payload?.error ?? "Unable to reconnect to this game.");
+      setIsGameReady(false);
+      setPlayerColor(null);
+      clearOnlineGameSession();
+      socket.disconnect();
     });
 
     socket.on("disconnect", () => {
@@ -121,7 +142,6 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     });
 
     return () => {
-      console.log("[useOnlineGameSync] Cleanup: disconnecting socket", socketRef.current?.id);
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -133,12 +153,9 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       setChatMessages([]);
       setChatConnectedPlayers(0);
       setChatStatus("connecting");
+      setGameError(null);
     };
   }, [dispatch, gameId, playerId, playerToken, username]);
-
-  useEffect(() => {
-    latestBoardStateRef.current = appState;
-  }, [appState]);
 
   useEffect(() => {
     if (!gameId || !playerId || !playerToken || !username || !socketRef.current?.connected || !hasHydratedFromServerRef.current) {
@@ -166,6 +183,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
       return;
     }
 
+    clearOnlineGameSession();
     socketRef.current.emit("resign-game", {
       gameId,
       playerId,
@@ -194,6 +212,7 @@ export function useOnlineGameSync({ appState, dispatch, gameId, playerId, player
     chatMessages,
     chatConnectedPlayers,
     chatStatus,
+    gameError,
     sendChatMessage,
   };
 }
