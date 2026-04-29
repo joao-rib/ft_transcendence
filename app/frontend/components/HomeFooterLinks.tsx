@@ -6,11 +6,11 @@ export default function HomeFooterLinks() {
       </a>
       <span style={{ color: "var(--text-muted)" }}>•</span>
       <a href="/privacy" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-        Privacy
+        Privacy Policy
       </a>
       <span style={{ color: "var(--text-muted)" }}>•</span>
       <a href="/support" className="transition-colors" style={{ color: "var(--text-accent)" }}>
-        Support
+        Terms of Service
       </a>
     </div>
   );
