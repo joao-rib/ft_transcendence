@@ -15,7 +15,7 @@ import { useGameController } from "../../frontend/game/hooks/useGameController";
  * 2. Passes player data into GamePlayerSidebar.
  * 3. Keeps profile and action sections separated in the layout.
  */
-export default function LobbyPageClient() {
+export default function GamePage() {
   const {
     boardTheme,
     closeFriends,
@@ -87,3 +87,4 @@ export default function LobbyPageClient() {
     </div>
   );
 }
+

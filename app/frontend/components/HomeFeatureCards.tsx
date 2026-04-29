@@ -1,4 +1,4 @@
-/*export default function HomeFeatureCards() {
+export default function HomeFeatureCards() {
 	return (
 		<div className="flex justify-center gap-4 flex-wrap">
 			<div
@@ -15,4 +15,4 @@
 			</div>
 		</div>
 	);
-}*/
+}

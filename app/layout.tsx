@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import CloseSessionOnUnload from "./frontend/components/CloseSessionOnUnload";
 import GlobalHamburgerMenu from "./frontend/components/GlobalHamburgerMenu";
 import ThemeInitializer from "./frontend/components/ThemeInitializer";
 import "./globals.css";
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <ThemeInitializer />
         <Suspense fallback={null}>
+          <CloseSessionOnUnload />
           <GlobalHamburgerMenu />
         </Suspense>
         {children}

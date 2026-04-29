@@ -4,12 +4,13 @@ import LoginModal from "./LoginModal";
 import SignupModal from "./SignupModal";
 import Background from "./Background";
 import AuthCard from "./AuthCard";
+import HomeFeatureCards from "./HomeFeatureCards";
 import HomeFooterLinks from "./HomeFooterLinks";
 import HomeHero from "./HomeHero";
 import { useHomePageController } from "../hooks/useHomePageController";
 import ThemeSwitcher from "./ThemeSwitcher";
 
-export default function HomePageClient() {
+export default function Home() {
   const {
     loginOpen,
     signupOpen,
@@ -55,6 +56,7 @@ export default function HomePageClient() {
         <div className="mx-auto w-full max-w-2xl space-y-12">
           <HomeHero />
           <AuthCard onLoginClick={openLogin} onSignupClick={openSignup} />
+          <HomeFeatureCards />
           <HomeFooterLinks />
         </div>
       </main>
