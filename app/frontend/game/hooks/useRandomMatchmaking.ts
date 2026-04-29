@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io, type Socket } from "socket.io-client";
+import { buildOnlineGameUrl, saveOnlineGameSession } from "../utils/onlineGameSession";
 
 const MATCHMAKING_NAMESPACE = "/matchmaking";
 
@@ -39,6 +40,11 @@ export function useRandomMatchmaking() {
     setMatchStatus("");
   };
 
+  const routeToActiveGame = ({ gameId, playerId, playerToken, username }: MatchFoundPayload) => {
+    saveOnlineGameSession({ gameId, playerId, playerToken, username });
+    router.push(buildOnlineGameUrl({ gameId, playerId, playerToken, username }));
+  };
+
   const startMatchmaking = (playerName: string) => {
     if (isSearching) {
       cancelMatchmaking();
@@ -65,13 +71,18 @@ export function useRandomMatchmaking() {
       setMatchStatus("Waiting for another player...");
     });
 
-    socket.on("match-found", ({ gameId, playerId, playerToken, username }: MatchFoundPayload) => {
+    socket.on("active-game", (payload: MatchFoundPayload) => {
+      disconnectSocket();
+      setIsSearching(false);
+      setMatchStatus("Resuming your active game...");
+      routeToActiveGame(payload);
+    });
+
+    socket.on("match-found", (payload: MatchFoundPayload) => {
       disconnectSocket();
       setIsSearching(false);
       setMatchStatus("");
-      router.push(
-        `/game?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}&playerToken=${encodeURIComponent(playerToken)}&username=${encodeURIComponent(username)}`,
-      );
+      routeToActiveGame(payload);
     });
 
     socket.on("disconnect", () => {

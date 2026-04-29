@@ -41,7 +41,7 @@ export function useHomePageController() {
 			if (!result?.ok) {
 				const providerError = result?.error ?? "CredentialsSignin";
 				const errorMessage = providerError === "CredentialsSignin"
-					? "Invalid credentials or account already active in another browser"
+					? "Invalid email or password"
 					: providerError;
 				setError(errorMessage);
 				console.error("[handleLogin] Login failed:", result?.error);
@@ -58,7 +58,7 @@ export function useHomePageController() {
 			console.log("[handleLogin] router.push() called");
 		} catch (err) {
 			const fallbackError = err instanceof Error && err.message.includes("NetworkError")
-				? "This account is already active in another browser or your credentials are invalid."
+				? "Invalid email or password."
 				: "An error occurred during login";
 			setError(fallbackError);
 			console.error("[handleLogin] Error:", err);
