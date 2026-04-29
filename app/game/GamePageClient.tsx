@@ -64,6 +64,9 @@ export default function GamePageClient() {
   })
 
   useCrossTabGameSync(appState, dispatch, !onlineGame.isOnlineGame)
+  
+  // Don't render the game until online games have received playerColor from server.
+  const isReadyToRender = !onlineGame.isOnlineGame || (onlineGame.isOnlineGame && onlineGame.playerColor !== null)
 
   const providerState = {
     appState,
@@ -93,6 +96,10 @@ export default function GamePageClient() {
         ) : onlineGame.isOnlineGame && !onlineGame.isGameReady ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
             <p>Reconnecting to game...</p>
+          </div>
+        ) : !isReadyToRender ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <p>Preparing game...</p>
           </div>
         ) : (
           <>

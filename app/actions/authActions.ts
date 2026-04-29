@@ -79,6 +79,6 @@ export async function registerUser(
 			message: "Failed to register user",
 		};
 	} finally {
-		await prisma.$disconnect(); //fecha a ligação a db
+		await prisma.$disconnect();
 	}
 }

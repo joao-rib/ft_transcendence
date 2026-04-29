@@ -95,12 +95,6 @@ export default function LoginModal({ isOpen, onClose, onSubmit, onSwitchToSignup
 							{isLoading ? "Signing in..." : "Sign In"}
 						</button>
 					</form>
-					{/*//TODO: Vamos fazer um forgot password?*/}
-					<div className="mt-6 text-center">
-						<button className="text-sm transition-colors" style={{ color: "var(--text-accent)" }}> 
-							Forgot password?
-						</button> 
-					</div>
 					<div className="mt-6 text-center">
 						<p className="text-sm" style={{ color: "var(--text-accent)" }}>
 							Don't have an account?{' '}
