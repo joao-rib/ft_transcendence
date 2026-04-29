@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { buildOnlineGameUrl, getOnlineGameSession } from "../utils/onlineGameSession";
+import { buildOnlineGameUrl, clearOnlineGameSession, getOnlineGameSession } from "../utils/onlineGameSession";
 import { useBoardThemeSettings } from "./useBoardThemeSettings";
 import { useRandomMatchmaking } from "./useRandomMatchmaking";
 
@@ -169,6 +169,7 @@ export function useGameController() {
 
   const handleDisconnect = async () => {
     try {
+      clearOnlineGameSession();
       await updatePresence("OFFLINE");
 
       // Sign out using NextAuth and redirect to login page
